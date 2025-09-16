@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chore Chart Kiosk</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap');
+
+    :root {
+      --bg: #2b2b2b; /* graphite gray */
+      --card: #3a3a3a;
+      --ink: #f4f4f4;
+      --muted: #b0b0b0;
+      --good: #00c853; /* green glow */
+      --bad: #d50000;  /* red glow */
+    }
+    html, body { height: 100%; }
+    body{
+      margin:0; font-family: 'Montserrat', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+      user-select: none; overscroll-behavior: none;
+    }
+    .wrap{ max-width: 1100px; margin: 0 auto; padding: 28px 20px 40px; }
+    header{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom: 16px; }
+    .title{ font-weight:800; letter-spacing:.5px; font-size: clamp(32px, 4vw, 48px); }
+    .subtitle{ color: var(--muted); font-size: clamp(14px, 2vw, 16px); font-weight: 500; }
+    .grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; justify-items:center; }
+    .bottom-row { 
+      grid-column: 1 / span 3; 
+      display: flex; 
+      justify-content: center; 
+      gap: 16px;
+      margin-top: 32px; /* Adjust this value to control space between top and bottom rows */
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 18px; padding:18px; position:relative; isolation:isolate;
+      width: 100%;
+      max-width: 300px;
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: box-shadow 0.4s ease;
+    }
+    .card.todo-glow {
+      box-shadow: 0 0 20px var(--bad), 0 0 40px rgba(231,0,50,.8), 0 6px 16px rgba(0,0,0,.6);
+    }
+    .card.done-glow {
+      box-shadow: 0 0 20px var(--good), 0 0 40px rgba(162,255,108,.8), 0 6px 16px rgba(0,0,0,.6);
+    }
+
+    .kid { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+    .avatar { width:40px; height:40px; border-radius:12px; background: #555; display:grid; place-items:center; font-weight:800; border:1px solid rgba(255,255,255,.2); color: var(--ink); }
+    .kid h3 { margin:0; font-size:18px; letter-spacing:.2px; font-weight:600; }
+
+    .chore { margin-top: 8px; font-size: clamp(20px, 2.6vw, 26px); color: var(--ink); font-weight:800; text-align:center; }
+
+    .btns { display:flex; gap:12px; margin-top:auto; }
+    button.big{
+      flex:1; padding:16px 14px; border-radius:14px; border:1px solid rgba(255,255,255,.2);
+      background:#444; color:var(--ink); font-size:18px; font-weight:600; letter-spacing:.3px;
+      box-shadow: inset 0 -3px 0 rgba(0,0,0,.3), 0 6px 12px rgba(0,0,0,.4);
+      transition: transform .2s ease, background .15s ease, box-shadow .15s ease;
+    }
+    button.big:active{ transform: translateY(1px); }
+    .done{ 
+      background: linear-gradient(180deg, rgba(0,200,83,.6), rgba(0,200,83,.4));
+      border-color: rgba(0,200,83,.7);
+      color: #fff;
+    }
+    .just-done { animation: bounce 0.4s ease; }
+    .todo{ background: linear-gradient(180deg, rgba(213,0,0,.25), rgba(213,0,0,.1)); border-color: rgba(213,0,0,.45); }
+
+    @keyframes bounce {
+      0%   { transform: scale(1); }
+      30%  { transform: scale(1.1); }
+      50%  { transform: scale(0.95); }
+      70%  { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .status{ font-weight: 700; font-size: 14px; padding:6px 10px; border-radius: 999px; display:inline-flex; align-items:center; gap:8px; }
+    .dot{ width:10px; height:10px; border-radius:50%; }
+    .status.good{ color:#2f3; background: rgba(0,200,83,.2); border:1px solid rgba(0,200,83,.45); }
+    .status.bad{ color:#fff; background: rgba(213,0,0,.25); border:1px solid rgba(213,0,0,.45); }
+
+    footer { margin-top: 18px; display:flex; justify-content:space-between; align-items:center; color: var(--muted); font-size: 13px; font-weight:500; }
+    .kbd{ font-family: 'Montserrat', monospace; background:#444; padding:2px 6px; border-radius:6px; border:1px solid rgba(255,255,255,.2); color:#b0b0b0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <div class="title">Today’s Chores</div>
+        <div class="subtitle" id="sub"></div>
+      </div>
+      <div id="all-status"></div>
+    </header>
+
+    <section class="grid" id="cards"></section>
+
+    <footer>
+      <div>Tap your button to toggle <span class="kbd">DONE</span> / <span class="kbd">TODO</span>. Messages post to Slack when marked done.</div>
+      <div>
+        <button id="resetBtn" class="kbd" title="Clears today’s checkmarks">Reset today</button>
+      </div>
+    </footer>
+  </div>
+
+<script>
+/***** CONFIG *****/
+const SLACK_WEBHOOK_PROXY_URL = "";
+
+const KIDS = [
+  { id: "avery",   name: "Avery" },
+  { id: "adeline", name: "Adeline" },
+  { id: "hagen",   name: "Hagen" },
+  { id: "astoria", name: "Astoria" },
+  { id: "lincoln", name: "Lincoln" }
+];
+
+const CHORES_BY_DAY = {
+  Monday: [
+    { kidId: "avery",   chore: "Downstairs Bathroom" },
+    { kidId: "adeline", chore: "Sweep and Swiffer" },
+    { kidId: "hagen",   chore: "Sunroom" },
+    { kidId: "astoria", chore: "Upstairs Bathroom" },
+    { kidId: "lincoln", chore: "Take Out Trash" }
+  ],
+  Tuesday: [
+    { kidId: "avery",   chore: "Take Out Trash" },
+    { kidId: "adeline", chore: "Downstairs Bathroom" },
+    { kidId: "hagen",   chore: "Sweep and Swiffer" },
+    { kidId: "astoria", chore: "Sunroom" },
+    { kidId: "lincoln", chore: "Upstairs Bathroom" }
+  ],
+  Wednesday: [
+    { kidId: "avery",   chore: "Upstairs Bathroom" },
+    { kidId: "adeline", chore: "Take Out Trash" },
+    { kidId: "hagen",   chore: "Downstairs Bathroom" },
+    { kidId: "astoria", chore: "Sweep and Swiffer" },
+    { kidId: "lincoln", chore: "Sunroom" }
+  ],
+  Thursday: [
+    { kidId: "avery",   chore: "Sunroom" },
+    { kidId: "adeline", chore: "Upstairs Bathroom" },
+    { kidId: "hagen",   chore: "Take Out Trash" },
+    { kidId: "astoria", chore: "Downstairs Bathroom" },
+    { kidId: "lincoln", chore: "Sweep and Swiffer" }
+  ],
+  Friday: [
+    { kidId: "avery",   chore: "Sweep and Swiffer" },
+    { kidId: "adeline", chore: "Sunroom" },
+    { kidId: "hagen",   chore: "Upstairs Bathroom" },
+    { kidId: "astoria", chore: "Take Out Trash" },
+    { kidId: "lincoln", chore: "Downstairs Bathroom" }
+  ]
+};
+
+const fmt = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+const today = new Date();
+const weekday = new Intl.DateTimeFormat(undefined, { weekday: 'long' }).format(today);
+const dateKey = today.toISOString().slice(0,10);
+const STORAGE_KEY = `choreStatus:${dateKey}`;
+
+const $sub = document.getElementById('sub');
+const $cards = document.getElementById('cards');
+const $allStatus = document.getElementById('all-status');
+const $resetBtn = document.getElementById('resetBtn');
+
+$sub.textContent = `${fmt.format(today)} • ${weekday}`;
+
+function loadStatus(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+  catch { return {}; }
+}
+function saveStatus(obj){ localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
+
+let status = loadStatus();
+let lastBounce = { id: null, did: false };
+
+function getTodayAssignments(){
+  const items = CHORES_BY_DAY[weekday] || [];
+  const byId = Object.fromEntries(KIDS.map(k => [k.id, k]));
+  return items.filter(i => byId[i.kidId]).map(i => ({ ...i, kid: byId[i.kidId] }));
+}
+
+function render(){
+  const items = getTodayAssignments();
+  $cards.innerHTML = '';
+  let doneCount = 0;
+  const bottomCards = [];
+  items.forEach((it, index) => {
+    const done = !!status[it.kidId];
+    if(done) doneCount++;
+
+    const card = document.createElement('div');
+    card.className = 'card ' + (done ? 'done-glow' : 'todo-glow');
+
+    const kid = document.createElement('div');
+    kid.className = 'kid';
+    const av = document.createElement('div');
+    av.className = 'avatar';
+    av.textContent = it.kid.name[0].toUpperCase();
+    const name = document.createElement('h3');
+    name.textContent = it.kid.name;
+
+    const pill = document.createElement('div');
+    pill.className = `status ${done ? 'good' : 'bad'}`;
+    const dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = done ? 'var(--good)' : 'var(--bad)';
+    const pillTxt = document.createElement('span'); pillTxt.textContent = done ? 'DONE' : 'TODO';
+    pill.append(dot, pillTxt);
+
+    kid.append(av, name, pill);
+
+    const chore = document.createElement('div');
+    chore.className = 'chore';
+    chore.textContent = it.chore;
+
+    const btns = document.createElement('div');
+    btns.className = 'btns';
+
+    const btn = document.createElement('button');
+    btn.className = `big ${done ? 'done' : 'todo'}`;
+    btn.textContent = done ? 'Mark as TODO' : 'Mark as DONE';
+
+    if (done && lastBounce.id === it.kidId && lastBounce.did) {
+      btn.classList.add('just-done');
+    }
+
+    btn.addEventListener('click', async () => {
+      const nowDone = !done;
+      status[it.kidId] = nowDone;
+      saveStatus(status);
+      lastBounce = { id: it.kidId, did: nowDone };
+      render();
+      if(nowDone){ await notifySlack(it.kid.name, it.chore); }
+    });
+
+    btns.append(btn);
+    card.append(kid, chore, btns);
+
+    if(index < 3){
+      $cards.append(card);
+    } else {
+      bottomCards.push(card);
+    }
+  });
+
+  if(bottomCards.length){
+    const row = document.createElement('div');
+    row.className = 'bottom-row';
+    bottomCards.forEach(c => row.appendChild(c));
+    $cards.append(row);
+  }
+
+  const total = items.length;
+  $allStatus.textContent = total ? `${doneCount}/${total} done` : 'No chores configured for today';
+  lastBounce = { id: null, did: false };
+}
+
+async function notifySlack(kidName, chore){
+  if(!SLACK_WEBHOOK_PROXY_URL) return;
+  try{
+    const res = await fetch(SLACK_WEBHOOK_PROXY_URL, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kid: kidName, chore, date: dateKey })
+    });
+    if(!res.ok){ console.warn('Slack proxy failed', await res.text()); }
+  }catch(err){ console.warn('Slack proxy error', err); }
+}
+
+(function rotateIfOld(){
+  const keys = Object.keys(localStorage).filter(k => k.startsWith('choreStatus:'));
+  for(const k of keys){
+    if(k !== STORAGE_KEY) localStorage.removeItem(k);
+  }
+})();
+
+$resetBtn.addEventListener('click', () => { status = {}; saveStatus(status); render(); });
+
+render();
+</script>
+</body>
+</html>
