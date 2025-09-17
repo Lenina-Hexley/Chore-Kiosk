@@ -300,7 +300,7 @@
     <section class="grid" id="cards"></section>
 
     <footer>
-      <div>Tap to toggle <span class="kbd">Mark as completed</span> / <span class="kbd">COMPLETED</span>. We’ll ping Slack when a task is docked.</div>
+      <div>Tap to toggle <span class="kbd">Mark as completed</span> / <span class="kbd">COMPLETED</span>. We’ll ping Slack when a task is completed.</div>
       <div>
         <button id="resetBtn" class="kbd" title="Clears today’s checkmarks">Reset Today</button>
       </div>
@@ -456,7 +456,7 @@ function render(){
 
 
   const total = items.length;
-  $allStatus.textContent = total ? `${doneCount}/${total} docked` : 'No missions scheduled for today';
+  $allStatus.textContent = total ? `${doneCount}/${total} completed` : 'No missions scheduled for today';
   lastBounce = { id: null, did: false };
 }
 
