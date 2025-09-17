@@ -95,23 +95,22 @@
     }
 
     .grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  justify-items: center;
-  margin-top: 22px;
-}
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      justify-items: center;
+      margin-top: 22px;
+    }
 
-.bottom-row {
-  grid-column: 1 / span 3;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  justify-content: center;
-}
+    .bottom-row {
+      grid-column: 1 / span 3;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      justify-content: center;
+    }
 
-
-    /* Cards: glassy nebula with neon edge and soft outer glow */
+    /* Cards */
     .card{
       background: linear-gradient(180deg, rgba(18,20,48,.9), rgba(12,16,36,.8));
       border: 1px solid var(--edge);
@@ -130,7 +129,7 @@
       transition: transform .12s ease, box-shadow .2s ease, border-color .2s ease;
       overflow: clip;
     }
-    .card::before{ /* aurora rim */
+    .card::before{
       content:"";
       position:absolute; inset:-1px;
       border-radius: 16px;
@@ -160,7 +159,6 @@
 
     .kid{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
 
-    /* Planet avatars: gradient sphere + ring */
     .avatar{
       width:42px; height:42px; border-radius:50%;
       display:grid; place-items:center;
@@ -192,7 +190,6 @@
       font-family: 'Inter', sans-serif;
     }
 
-    /* Holographic status pill */
     .status{
       margin-left:auto;
       font-weight:800; font-size: 12px; letter-spacing:.4px;
@@ -221,7 +218,6 @@
 
     .btns{ display:flex; gap:12px; margin-top:auto; }
 
-    /* Holo buttons */
     button.big{
       position: relative;
       flex:1; padding:14px 14px;
@@ -263,11 +259,17 @@
 
     footer{
       margin-top: 18px;
-      display:flex; justify-content:space-between; align-items:center;
+      display:flex; flex-direction:column; gap:10px;
       color: var(--muted); font-size: 13px; font-weight:700;
       border-top: 1px solid rgba(255,255,255,.1);
       padding-top: 14px;
     }
+
+    .foot-top{
+      display:flex; justify-content:space-between; align-items:center;
+      gap: 12px;
+    }
+
     .kbd{
       font-family: 'Inter', monospace;
       background: rgba(255,255,255,.06);
@@ -280,7 +282,29 @@
       letter-spacing:.5px;
     }
 
-    /* Responsive: single column on narrow screens */
+    /* === Weekly Progress Bar (NEW) === */
+    .weekly-wrap{
+      display:flex; flex-direction:column; gap:8px;
+    }
+    .weekly-label{
+      display:flex; justify-content:space-between; align-items:center;
+      font-weight:800; color:#cfe2ff;
+    }
+    .progress-outer{
+      width:100%; height:14px; border-radius:999px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 0 0 1px rgba(255,255,255,.04);
+      overflow:hidden;
+    }
+    .progress-inner{
+      height:100%; width:0%;
+      background: linear-gradient(90deg, rgba(39,240,167,.6), rgba(123,255,247,.8), rgba(179,102,255,.7));
+      box-shadow: 0 0 12px rgba(39,240,167,.35);
+      transition: width .35s ease;
+    }
+
+    /* Responsive */
     @media (max-width: 760px){
       .grid{ grid-template-columns: 1fr; }
       .bottom-row{ grid-column: 1; }
@@ -300,9 +324,23 @@
     <section class="grid" id="cards"></section>
 
     <footer>
-      <div>Tap to toggle <span class="kbd">Mark as completed</span> / <span class="kbd">COMPLETED</span>. We’ll ping Slack when a task is completed.</div>
-      <div>
-        <button id="resetBtn" class="kbd" title="Clears today’s checkmarks">Reset Today</button>
+      <div class="foot-top">
+        <div>Tap to toggle <span class="kbd">MARK AS COMPLETED</span> / <span class="kbd">COMPLETED</span>. We’ll ping Slack when a task is completed.</div>
+        <div>
+          <button id="resetBtn" class="kbd" title="Clears today’s checkmarks">Reset Today</button>
+        </div>
+      </div>
+
+      <!-- Weekly Progress (NEW) -->
+      <div class="weekly-wrap">
+        <div class="weekly-label">
+          <span>Weekly Completion</span>
+          <span id="weekly-count">0 / 0</span>
+        </div>
+        <div class="progress-outer">
+          <div class="progress-inner" id="weekly-bar"></div>
+        </div>
+        <div class="subtitle" style="opacity:.8;">Goal: 100% by Friday</div>
       </div>
     </footer>
   </div>
@@ -359,7 +397,7 @@ const CHORES_BY_DAY = {
 
 const fmt = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 const today = new Date();
-const weekday = new Intl.DateTimeFormat(undefined, { weekday: 'long' }).format(today);
+const weekdayName = new Intl.DateTimeFormat(undefined, { weekday: 'long' }).format(today);
 const dateKey = today.toISOString().slice(0,10);
 const STORAGE_KEY = `choreStatus:${dateKey}`;
 
@@ -367,29 +405,86 @@ const $sub = document.getElementById('sub');
 const $cards = document.getElementById('cards');
 const $allStatus = document.getElementById('all-status');
 const $resetBtn = document.getElementById('resetBtn');
+const $weeklyBar = document.getElementById('weekly-bar');     // NEW
+const $weeklyCount = document.getElementById('weekly-count');  // NEW
 
-$sub.textContent = `${fmt.format(today)} • ${weekday}`;
+$sub.textContent = `${fmt.format(today)} • ${weekdayName}`;
 
-function loadStatus(){
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+function loadStatusForDateKey(key){
+  try { return JSON.parse(localStorage.getItem(key) || '{}'); }
   catch { return {}; }
 }
+function loadStatus(){ return loadStatusForDateKey(STORAGE_KEY); }
 function saveStatus(obj){ localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
 
 let status = loadStatus();
 let lastBounce = { id: null, did: false };
 
 function getTodayAssignments(){
-  const items = CHORES_BY_DAY[weekday] || [];
+  const items = CHORES_BY_DAY[weekdayName] || [];
   const byId = Object.fromEntries(KIDS.map(k => [k.id, k]));
   return items.filter(i => byId[i.kidId]).map(i => ({ ...i, kid: byId[i.kidId] }));
 }
 
+/* === Week helpers (NEW) === */
+const DOW = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+function startOfWeek(d){ // Monday as week start
+  const n = new Date(d);
+  const day = n.getDay(); // 0=Sun..6=Sat
+  const diff = (day === 0 ? -6 : 1 - day); // back to Monday
+  n.setDate(n.getDate() + diff);
+  n.setHours(0,0,0,0);
+  return n;
+}
+function iso(d){ return d.toISOString().slice(0,10); }
+function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
+
+function getWeekDateKeys(){
+  const mon = startOfWeek(today);
+  // Only Mon..Fri (5 days)
+  return Array.from({length:5}, (_,i) => iso(addDays(mon, i)));
+}
+
+function choresForDayName(name){
+  return CHORES_BY_DAY[name] || [];
+}
+
+function computeWeeklyTotals(){
+  const keys = getWeekDateKeys();
+
+  let completed = 0;
+  let totalPossible = 0;
+
+  keys.forEach(k => {
+    // compute day name from date
+    const dayName = DOW[new Date(k).getDay()];
+    const assignments = choresForDayName(dayName);
+    totalPossible += assignments.length;
+
+    const st = loadStatusForDateKey(`choreStatus:${k}`);
+    // count true values
+    for (const kidId of Object.keys(st)) {
+      if (st[kidId]) completed++;
+    }
+  });
+
+  return { completed, totalPossible };
+}
+
+function renderWeeklyProgress(){
+  const { completed, totalPossible } = computeWeeklyTotals();
+  const pct = totalPossible ? Math.round((completed / totalPossible) * 100) : 0;
+  $weeklyBar.style.width = `${pct}%`;
+  $weeklyCount.textContent = `${completed} / ${totalPossible} (${pct}%)`;
+}
+
+/* === RENDER === */
 function render(){
   const items = getTodayAssignments();
   $cards.innerHTML = '';
   let doneCount = 0;
   const bottomCards = [];
+
   items.forEach((it, index) => {
     const done = !!status[it.kidId];
     if(done) doneCount++;
@@ -433,7 +528,8 @@ function render(){
       status[it.kidId] = nowDone;
       saveStatus(status);
       lastBounce = { id: it.kidId, did: nowDone };
-      render();
+      render();                 // re-render cards
+      renderWeeklyProgress();   // update weekly bar (NEW)
       if(nowDone){ await notifySlack(it.kid.name, it.chore); }
     });
 
@@ -448,12 +544,11 @@ function render(){
   });
 
   if(bottomCards.length){
-  const row = document.createElement('div');
-  row.className = 'bottom-row';
-  bottomCards.forEach(c => row.appendChild(c));
-  $cards.append(row);
-}
-
+    const row = document.createElement('div');
+    row.className = 'bottom-row';
+    bottomCards.forEach(c => row.appendChild(c));
+    $cards.append(row);
+  }
 
   const total = items.length;
   $allStatus.textContent = total ? `${doneCount}/${total} completed` : 'No missions scheduled for today';
@@ -471,16 +566,27 @@ async function notifySlack(kidName, chore){
   }catch(err){ console.warn('Slack proxy error', err); }
 }
 
-(function rotateIfOld(){
-  const keys = Object.keys(localStorage).filter(k => k.startsWith('choreStatus:'));
-  for(const k of keys){
-    if(k !== STORAGE_KEY) localStorage.removeItem(k);
+/* keep only recent history, but DO NOT remove this-week keys (NEW) */
+(function pruneOldButKeepThisWeek(){
+  const keep = new Set(getWeekDateKeys().map(k => `choreStatus:${k}`));
+  const now = Date.now();
+  for(const k of Object.keys(localStorage)){
+    if(!k.startsWith('choreStatus:')) continue;
+    if(keep.has(k)) continue;
+    // keep ~2 weeks of history just in case; else remove
+    const dateStr = k.split(':')[1];
+    const t = Date.parse(dateStr);
+    if (!Number.isNaN(t) && (now - t) > 14*24*60*60*1000){
+      localStorage.removeItem(k);
+    }
   }
 })();
 
-$resetBtn.addEventListener('click', () => { status = {}; saveStatus(status); render(); });
+$resetBtn.addEventListener('click', () => { status = {}; saveStatus(status); render(); renderWeeklyProgress(); });
 
+/* initial render */
 render();
+renderWeeklyProgress(); // NEW
 </script>
 </body>
 </html>
