@@ -558,12 +558,20 @@ function render(){
 async function notifySlack(kidName, chore){
   if(!SLACK_WEBHOOK_PROXY_URL) return;
   try{
-    const res = await fetch(SLACK_WEBHOOK_PROXY_URL, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ kid: kidName, chore, date: dateKey })
+    const payload = new URLSearchParams({
+      kid: kidName,
+      chore,
+      date: dateKey
     });
-    if(!res.ok){ console.warn('Slack proxy failed', await res.text()); }
-  }catch(err){ console.warn('Slack proxy error', err); }
+    const res = await fetch(SLACK_WEBHOOK_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: payload
+    });
+    // optional: don’t rely on res.ok since CORS may still hide it
+  }catch(err){
+    console.warn('Zapier error', err);
+  }
 }
 
 /* keep only recent history, but DO NOT remove this-week keys (NEW) */
