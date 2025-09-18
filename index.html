@@ -540,14 +540,19 @@ function render(){
     }
 
     btn.addEventListener('click', async () => {
-      const nowDone = !done;
-      status[it.kidId] = nowDone;
-      saveStatus(status);
-      lastBounce = { id: it.kidId, did: nowDone };
-      render();                 // re-render cards
-      renderWeeklyProgress();   // update weekly bar (NEW)
-      if(nowDone){ await notifySlack(it.kid.name, it.chore); }
-    });
+  const nowDone = !done;
+  status[it.kidId] = nowDone;
+  saveStatus(status);
+  lastBounce = { id: it.kidId, did: nowDone };
+  render();                 // re-render cards
+  renderWeeklyProgress();   // update weekly bar (NEW)
+
+  if (nowDone) { 
+    document.getElementById('completeSound').play();
+    await notifySlack(it.kid.name, it.chore); 
+  }
+});  // 👈 closes both the function and addEventListener
+
 
     btns.append(btn);
     card.append(kid, chore, btns);
@@ -621,5 +626,6 @@ render();
     });
   }
 </script>
+  <audio id="completeSound" src="./sounds/ding.mp3" preload="auto"></audio>
 </body>
 </html>
