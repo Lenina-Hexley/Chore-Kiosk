@@ -1,0 +1,27 @@
+{
+  "name": "Chore Chart · COSMOS",
+  "short_name": "Chore Chart",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#070716",
+  "theme_color": "#0b1026",
+  "icons": [
+    {
+      "src": "./icons/192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icons/512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "./icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
