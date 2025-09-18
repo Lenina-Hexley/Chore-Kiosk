@@ -3,9 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Chore Chart · COSMOS</title>
+   <title>Chore Chart · COSMOS</title>
+
+  <!-- PWA bits -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#0b1026">
+
+  <!-- iOS-specific “installable web app” flags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Chore Chart">
+  <link rel="apple-touch-icon" href="./icons/180.png">
+
   <style>
-    /* COSMOS THEME: deep space, aurora edges, neon systems */
+    /* COSMOS THEME ... */
+
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@500;700;800&display=swap');
 
     :root{
@@ -594,7 +606,16 @@ $resetBtn.addEventListener('click', () => { status = {}; saveStatus(status); ren
 
 /* initial render */
 render();
-renderWeeklyProgress(); // NEW
+</script>
+
+<!-- PWA: service worker registration -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .catch(err => console.warn('Service worker failed:', err));
+    });
+  }
 </script>
 </body>
 </html>
