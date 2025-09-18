@@ -11,7 +11,7 @@
 
   <!-- iOS-specific “installable web app” flags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Chore Chart">
   <link rel="apple-touch-icon" href="./icons/180.png">
 
@@ -47,6 +47,9 @@
         radial-gradient(1200px 800px at 15% -10%, rgba(123,255,247,.12), transparent 60%),
         radial-gradient(900px 700px at 85% 20%, rgba(178,102,255,.12), transparent 60%),
         linear-gradient(180deg, var(--bg1), var(--bg2));
+
+        /* this pushes your content down so it doesn't clash with iOS status bar */
+  padding-top: env(safe-area-inset-top);
     }
 
     /* starfield */
