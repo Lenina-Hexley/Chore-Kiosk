@@ -325,6 +325,56 @@
       .grid{ grid-template-columns: 1fr; }
       .bottom-row{ grid-column: 1; }
     }
+    /* Pop-up missions */
+.missions-wrap { margin-top: 8px; }
+.missions-list { display: grid; gap: 12px; }
+.mission-card{
+  background: linear-gradient(180deg, rgba(18,20,48,.9), rgba(12,16,36,.8));
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 14px;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+  box-shadow: 0 8px 18px rgba(0,0,0,.45);
+}
+.mission-title{
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 800;
+  letter-spacing: .3px;
+  font-size: 18px;
+}
+.mission-meta{
+  color: var(--muted);
+  font-size: 13px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.mission-amount{
+  font-weight: 800;
+  color: #caffec;
+  border:1px solid rgba(39,240,167,.35);
+  background: linear-gradient(180deg, rgba(39,240,167,.15), rgba(39,240,167,.06));
+  padding: 4px 8px; border-radius: 10px;
+}
+.mission-expectations{ font-size: 14px; line-height: 1.35; }
+.mission-actions{ display:flex; gap:10px; }
+.mission-btn{
+  border-radius: 10px; border:1px solid rgba(255,255,255,.18);
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  padding:10px 12px; font-weight: 800; letter-spacing:.4px; text-transform: uppercase;
+  cursor: pointer;
+}
+.mission-btn.accept{
+  border-color: rgba(39,240,167,.45);
+  background: linear-gradient(180deg, rgba(39,240,167,.18), rgba(39,240,167,.08));
+  color:#caffec; text-shadow: 0 0 8px rgba(39,240,167,.45);
+}
+.mission-badge{
+  font-weight:800; font-size: 12px; letter-spacing:.3px; color:#cfe2ff;
+  border:1px solid rgba(255,255,255,.18); padding:4px 8px; border-radius:999px;
+}
+
   </style>
 </head>
 <body>
@@ -358,12 +408,23 @@
         </div>
         <div class="subtitle" style="opacity:.8;">Goal: 100% by Friday</div>
       </div>
+      <!-- Pop-up Missions -->
+<div id="missions" class="missions-wrap">
+  <div class="missions-header subtitle" style="margin-top:6px;">Pop-Up Missions</div>
+  <div id="missions-list" class="missions-list"></div>
+</div>
     </footer>
   </div>
 
 <script>
 /***** CONFIG *****/
 const SLACK_WEBHOOK_PROXY_URL = "https://hooks.zapier.com/hooks/catch/24636014/um8kba2/";
+// === MISSIONS CONFIG ===
+// 1) Published CSV URL from your Google Sheet (the one ending with ?output=csv)
+const MISSIONS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQaEgUXEMo-_9EBzFaY96OxzV5hSRtsTPpEByEiyIK5Ie3TNYwh_ENfFnrLqrWJv85JKEQyDQQ9ddwh/pub?output=csv";
+// 2) Zapier Catch Hook URL that will post to Slack & delete the row
+const MISSIONS_ACCEPT_WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/24636014/um0dnqd/";
+
 
 const KIDS = [
   { id: "avery",   name: "Avery" },
@@ -625,6 +686,8 @@ $resetBtn.addEventListener('click', () => { status = {}; saveStatus(status); ren
 /* initial render */
 render();
 renderWeeklyProgress();
+fetchMissions();
+setInterval(fetchMissions, 30000); // refresh every 30s
 </script>
 
 <!-- PWA: service worker registration -->
