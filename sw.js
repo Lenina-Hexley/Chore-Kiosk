@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cosmos-chore-v1';
+const CACHE_NAME = 'cosmos-chore-v2';
 
 const ASSETS = [
   './',
