@@ -414,7 +414,16 @@ const CHORES_BY_DAY = {
 const fmt = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 const today = new Date();
 const weekdayName = new Intl.DateTimeFormat(undefined, { weekday: 'long' }).format(today);
-const dateKey = today.toISOString().slice(0,10);
+
+// NEW: local (not UTC) date key so days don't shift overnight
+function localDateKey(d = new Date()){
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+const dateKey = localDateKey(today);                   // ← was toISOString().slice(0,10)
 const STORAGE_KEY = `choreStatus:${dateKey}`;
 
 const $sub = document.getElementById('sub');
@@ -615,6 +624,7 @@ $resetBtn.addEventListener('click', () => { status = {}; saveStatus(status); ren
 
 /* initial render */
 render();
+renderWeeklyProgress();
 </script>
 
 <!-- PWA: service worker registration -->
