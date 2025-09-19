@@ -522,13 +522,13 @@ function startOfWeek(d){ // Monday as week start
   n.setHours(0,0,0,0);
   return n;
 }
-function iso(d){ return d.toISOString().slice(0,10); }
 function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
 
+// Use localDateKey so Monday stays Monday in your timezone
 function getWeekDateKeys(){
   const mon = startOfWeek(today);
-  // Only Mon..Fri (5 days)
-  return Array.from({length:5}, (_,i) => iso(addDays(mon, i)));
+  // Mon–Fri
+  return Array.from({length:5}, (_, i) => localDateKey(addDays(mon, i)));
 }
 
 function choresForDayName(name){
