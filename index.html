@@ -789,13 +789,31 @@ function renderMissions(list){
 // --- Fetch missions from the published CSV ---
 async function fetchMissions(){
   if (!MISSIONS_CSV_URL){ renderMissions([]); return; }
+  const url = MISSIONS_CSV_URL + (MISSIONS_CSV_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+
   try{
-    const res = await fetch(MISSIONS_CSV_URL, { cache: 'no-store' });
-    if(!res.ok) throw new Error('CSV fetch failed');
+    const res = await fetch(url, { cache: 'no-store' });
+    if(!res.ok) throw new Error('CSV fetch failed: ' + res.status);
     const text = await res.text();
-    let items = parseCSV(text);
-    // Expect headers: id,title,expectations,amount,createdBy,createdAt
-    items = items.filter(x => x.id && x.title);
+    console.log('[missions] raw csv length:', text.length);
+
+    let rows = parseCSV(text);
+    console.log('[missions] parsed rows:', rows.length, rows[0]);
+
+    // Normalize likely header variants
+    const norm = rows.map(r => ({
+      id:           r.id || r.ID || r.Timestamp || r.timestamp || r.createdAt || '',
+      title:        r.title || r['Mission Title'] || r['Title'] || '',
+      expectations: r.expectations || r['Expectations / Details'] || r['Expectations'] || '',
+      amount:       r.amount || r['Amount'] || r['Amount ($)'] || r['Reward'] || '',
+      createdBy:    r.createdBy || r['Adult Name'] || r['From'] || '',
+      createdAt:    r.createdAt || r.Timestamp || r.timestamp || ''
+    }));
+
+    // Keep rows that have at least id + title
+    const items = norm.filter(x => (x.id && x.title));
+    console.log('[missions] normalized items:', items.length);
+
     renderMissions(items);
   }catch(e){
     console.warn('Failed to load missions', e);
