@@ -665,6 +665,144 @@ async function notifySlack(kidName, chore){
   }
 }
 
+function parseCSV(text){
+  const rows = [];
+  let i = 0, cur = [], field = '', inQuotes = false;
+
+  while (i < text.length){
+    const ch = text[i];
+
+    if (inQuotes){
+      if (ch === '"'){
+        if (text[i+1] === '"'){ field += '"'; i += 2; continue; } // escaped "
+        inQuotes = false; i++; continue;
+      }
+      field += ch; i++; continue;
+    }
+
+    if (ch === '"'){ inQuotes = true; i++; continue; }
+    if (ch === ','){ cur.push(field); field = ''; i++; continue; }
+    if (ch === '\r'){ i++; continue; }
+    if (ch === '\n'){ cur.push(field); rows.push(cur); cur = []; field = ''; i++; continue; }
+
+    field += ch; i++;
+  }
+  if (field.length || cur.length){ cur.push(field); rows.push(cur); }
+
+  if (!rows.length) return [];
+  const headers = rows[0].map(h => h.trim());
+  return rows.slice(1).filter(r => r.length && r.some(x => x && x.trim().length)).map(r => {
+    const obj = {};
+    headers.forEach((h, idx) => obj[h] = (r[idx] ?? '').trim());
+    return obj;
+  });
+}
+
+// --- Missions UI ---
+const $missionsList = document.getElementById('missions-list');
+
+function renderMissions(list){
+  $missionsList.innerHTML = '';
+  if (!list.length){
+    const empty = document.createElement('div');
+    empty.className = 'subtitle';
+    empty.style.opacity = '.7';
+    empty.textContent = 'No pop-up missions right now.';
+    $missionsList.appendChild(empty);
+    return;
+  }
+
+  list.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'mission-card';
+
+    const title = document.createElement('div');
+    title.className = 'mission-title';
+    title.textContent = m.title || 'Mission';
+
+    const meta = document.createElement('div');
+    meta.className = 'mission-meta';
+    const who = document.createElement('span');
+    who.className = 'mission-badge';
+    who.textContent = m.createdBy ? `From: ${m.createdBy}` : 'From: Adult';
+    const amt = document.createElement('span');
+    amt.className = 'mission-amount';
+    const n = Number(m.amount);
+    amt.textContent = Number.isFinite(n) ? `$${n.toFixed(2)}` : `$${(m.amount||'0')}`;
+    meta.append(who, amt);
+
+    const exp = document.createElement('div');
+    exp.className = 'mission-expectations';
+    exp.textContent = m.expectations || '';
+
+    const actions = document.createElement('div');
+    actions.className = 'mission-actions';
+
+    const btn = document.createElement('button');
+    btn.className = 'mission-btn accept';
+    btn.textContent = 'Accept Mission';
+
+    btn.addEventListener('click', async () => {
+      const kid = (prompt('Enter your name to accept:') || '').trim();
+      if (!kid) return;
+
+      const payload = new URLSearchParams({
+        id: m.id || '',
+        title: m.title || '',
+        expectations: m.expectations || '',
+        amount: m.amount || '',
+        createdBy: m.createdBy || '',
+        kid,
+        date: new Date().toISOString()
+      });
+
+      try{
+        console.log('POSTing accept', MISSIONS_ACCEPT_WEBHOOK_URL, Object.fromEntries(payload));
+        await fetch(MISSIONS_ACCEPT_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+          body: payload,
+          cache: 'no-store',
+          keepalive: true
+        });
+      }catch(e){
+        console.warn('Accept webhook failed', e);
+      }
+
+      // Optimistic UI removal
+      card.remove();
+      if(!$missionsList.children.length){
+        const empty = document.createElement('div');
+        empty.className = 'subtitle';
+        empty.style.opacity = '.7';
+        empty.textContent = 'No pop-up missions right now.';
+        $missionsList.appendChild(empty);
+      }
+    });
+
+    actions.appendChild(btn);
+    card.append(title, meta, exp, actions);
+    $missionsList.appendChild(card);
+  });
+}
+
+// --- Fetch missions from the published CSV ---
+async function fetchMissions(){
+  if (!MISSIONS_CSV_URL){ renderMissions([]); return; }
+  try{
+    const res = await fetch(MISSIONS_CSV_URL, { cache: 'no-store' });
+    if(!res.ok) throw new Error('CSV fetch failed');
+    const text = await res.text();
+    let items = parseCSV(text);
+    // Expect headers: id,title,expectations,amount,createdBy,createdAt
+    items = items.filter(x => x.id && x.title);
+    renderMissions(items);
+  }catch(e){
+    console.warn('Failed to load missions', e);
+    renderMissions([]);
+  }
+}
+
 /* keep only recent history, but DO NOT remove this-week keys (NEW) */
 (function pruneOldButKeepThisWeek(){
   const keep = new Set(getWeekDateKeys().map(k => `choreStatus:${k}`));
