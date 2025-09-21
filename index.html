@@ -424,6 +424,9 @@ const SLACK_WEBHOOK_PROXY_URL = "https://hooks.zapier.com/hooks/catch/24636014/u
 const MISSIONS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQaEgUXEMo-_9EBzFaY96OxzV5hSRtsTPpEByEiyIK5Ie3TNYwh_ENfFnrLqrWJv85JKEQyDQQ9ddwh/pub?output=csv";
 // 2) Zapier Catch Hook URL that will post to Slack & delete the row
 const MISSIONS_ACCEPT_WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/24636014/um0dnqd/";
+// When the weekly bar hits 100%, send a Slack/Zapier ping here.
+// You can reuse your proxy, or make a new Zapier catch hook just for this.
+const WEEKLY_100_WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/24636014/u1oba61/"; // <— replace with your Zap URL
 
 
 const KIDS = [
@@ -556,12 +559,26 @@ function computeWeeklyTotals(){
 
   return { completed, totalPossible };
 }
+function maybeNotifyWeekly100(pct, completed, totalPossible) {
+  const key = "weekly100notified:" + weekId();
+
+  if (pct === 100 && !localStorage.getItem(key)) {
+    localStorage.setItem(key, "1");
+    notifySlackWeekly({ pct, completed, totalPossible });
+  }
+
+  // Clear flag if they dip below 100% so you can be notified again
+  if (pct < 100 && localStorage.getItem(key)) {
+    localStorage.removeItem(key);
+  }
+}
 
 function renderWeeklyProgress(){
   const { completed, totalPossible } = computeWeeklyTotals();
   const pct = totalPossible ? Math.round((completed / totalPossible) * 100) : 0;
   $weeklyBar.style.width = `${pct}%`;
   $weeklyCount.textContent = `${completed} / ${totalPossible} (${pct}%)`;
+  maybeNotifyWeekly100(pct, completed, totalPossible); 
 }
 
 /* === RENDER === */
@@ -662,6 +679,38 @@ async function notifySlack(kidName, chore){
     // optional: don’t rely on res.ok since CORS may still hide it
   }catch(err){
     console.warn('Zapier error', err);
+  }
+}
+async function notifySlackWeekly({ pct, completed, totalPossible }) {
+  const url = WEEKLY_100_WEBHOOK_URL || SLACK_WEBHOOK_PROXY_URL;
+  if (!url) return;
+
+  // Week label (Mon–Fri) in local time
+  const mon = startOfWeek(new Date());
+  const fri = addDays(mon, 4);
+  const weekStart = localDateKey(mon);
+  const weekEnd   = localDateKey(fri);
+
+  const payload = new URLSearchParams({
+    type: "weekly100",
+    week_id: weekStart,              // stable weekly key
+    week_start: weekStart,
+    week_end: weekEnd,
+    pct: String(pct),
+    completed: String(completed),
+    totalPossible: String(totalPossible),
+    ts: new Date().toISOString()
+  });
+
+  try{
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body: payload,
+      keepalive: true
+    });
+  }catch(err){
+    console.warn("Weekly 100% Slack notify failed:", err);
   }
 }
 
