@@ -546,7 +546,8 @@ function computeWeeklyTotals(){
 
   keys.forEach(k => {
     // compute day name from date
-    const dayName = DOW[new Date(k).getDay()];
+    const [y, m, d] = k.split('-').map(Number);
+    const dayName = DOW[new Date(y, m - 1, d).getDay()];
     const assignments = choresForDayName(dayName);
     totalPossible += assignments.length;
 
