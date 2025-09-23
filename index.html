@@ -561,7 +561,9 @@ function computeWeeklyTotals(){
   return { completed, totalPossible };
 }
 function maybeNotifyWeekly100(pct, completed, totalPossible) {
-  const key = "weekly100notified:" + weekId();
+  // Use Monday’s local date key as the "week id"
+  const mon = startOfWeek(new Date());
+  const key = "weekly100notified:" + localDateKey(mon);
 
   if (pct === 100 && !localStorage.getItem(key)) {
     localStorage.setItem(key, "1");
@@ -573,6 +575,7 @@ function maybeNotifyWeekly100(pct, completed, totalPossible) {
     localStorage.removeItem(key);
   }
 }
+
 
 function renderWeeklyProgress(){
   const { completed, totalPossible } = computeWeeklyTotals();
