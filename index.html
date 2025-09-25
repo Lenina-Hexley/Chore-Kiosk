@@ -476,10 +476,7 @@ const CHORES_BY_DAY = {
 };
 
 const fmt = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
-const today = new Date();
-const weekdayName = new Intl.DateTimeFormat(undefined, { weekday: 'long' }).format(today);
 
-// NEW: local (not UTC) date key so days don't shift overnight
 function localDateKey(d = new Date()){
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -487,8 +484,24 @@ function localDateKey(d = new Date()){
   return `${y}-${m}-${day}`;
 }
 
-const dateKey = localDateKey(today);                   // ← was toISOString().slice(0,10)
-const STORAGE_KEY = `choreStatus:${dateKey}`;
+// current “clock” state (mutable so we can tick to a new day)
+let now = new Date();
+let weekdayName = new Intl.DateTimeFormat(undefined, { weekday: 'long' }).format(now);
+let dateKey = localDateKey(now);
+let STORAGE_KEY = `choreStatus:${dateKey}`;
+
+function recomputeDay(){
+  now = new Date();
+  const newWeekday = new Intl.DateTimeFormat(undefined, { weekday: 'long' }).format(now);
+  const newDateKey = localDateKey(now);
+  const changed = (newDateKey !== dateKey);
+
+  weekdayName = newWeekday;
+  dateKey = newDateKey;
+  STORAGE_KEY = `choreStatus:${dateKey}`;
+  return changed;
+}
+
 
 const $sub = document.getElementById('sub');
 const $cards = document.getElementById('cards');
@@ -497,7 +510,7 @@ const $resetBtn = document.getElementById('resetBtn');
 const $weeklyBar = document.getElementById('weekly-bar');     // NEW
 const $weeklyCount = document.getElementById('weekly-count');  // NEW
 
-$sub.textContent = `${fmt.format(today)} • ${weekdayName}`;
+$sub.textContent = `${fmt.format(now)} • ${weekdayName}`;
 
 function loadStatusForDateKey(key){
   try { return JSON.parse(localStorage.getItem(key) || '{}'); }
@@ -529,7 +542,7 @@ function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate()+n); return 
 
 // Use localDateKey so Monday stays Monday in your timezone
 function getWeekDateKeys(){
-  const mon = startOfWeek(today);
+  const mon = startOfWeek(now);
   // Mon–Fri
   return Array.from({length:5}, (_, i) => localDateKey(addDays(mon, i)));
 }
@@ -584,6 +597,26 @@ function renderWeeklyProgress(){
   $weeklyCount.textContent = `${completed} / ${totalPossible} (${pct}%)`;
   maybeNotifyWeekly100(pct, completed, totalPossible); 
 }
+function refreshForNewDay(){
+  const crossed = recomputeDay();
+  if (crossed) {
+    // reload state tied to the new STORAGE_KEY
+    status = loadStatus();
+    $sub.textContent = `${fmt.format(now)} • ${weekdayName}`;
+    render();
+    renderWeeklyProgress();
+    if (typeof fetchMissions === 'function') fetchMissions();
+  }
+}
+
+// Check once a minute
+setInterval(refreshForNewDay, 60 * 1000);
+
+// Also when app becomes visible / focused
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') refreshForNewDay();
+});
+window.addEventListener('focus', refreshForNewDay);
 
 /* === RENDER === */
 function render(){
