@@ -32,6 +32,7 @@
       --halo: rgba(123, 255, 247, .45); /* cyan halo */
       --halo2: rgba(178, 102, 255, .45); /* purple halo */
       --grid: rgba(120, 172, 255, .06);
+      --warn: #ffd166;         /* amber */
     }
 
     html, body { height: 100%; }
@@ -49,7 +50,6 @@
         radial-gradient(900px 700px at 85% 20%, rgba(178,102,255,.12), transparent 60%),
         linear-gradient(180deg, var(--bg1), var(--bg2));
 
-        /* this pushes your content down so it doesn't clash with iOS status bar */
   padding-top: env(safe-area-inset-top);
     }
 
@@ -95,7 +95,6 @@
       margin-top: 6px;
     }
 
-    /* thin holo rule under header */
     header::after{
       content:"";
       display:block;
@@ -135,7 +134,7 @@
       position:relative; isolation:isolate;
       width: 100%;
       max-width: 300px;
-      min-height: 156px;
+      min-height: 190px;
       display:flex;
       flex-direction:column;
       justify-content:space-between;
@@ -165,6 +164,12 @@
         0 0 22px rgba(255,59,127,.25),
         0 10px 24px rgba(0,0,0,.5);
       border-color: rgba(255,59,127,.35);
+    }
+    .card.pending-glow{
+      box-shadow:
+        0 0 22px rgba(255,209,102,.25),
+        0 10px 24px rgba(0,0,0,.5);
+      border-color: rgba(255,209,102,.35);
     }
     .card.done-glow{
       box-shadow:
@@ -220,6 +225,7 @@
     .dot{ width:10px; height:10px; border-radius:50%; }
     .status.good{ color: var(--good); }
     .status.bad{ color: var(--bad); }
+    .status.warn{ color: var(--warn); }
 
     .chore{
       margin-top: 6px;
@@ -232,37 +238,42 @@
       text-transform: uppercase;
     }
 
-    .btns{ display:flex; gap:12px; margin-top:auto; }
+    .btns{ display:flex; gap:10px; margin-top:auto; }
 
     button.big{
       position: relative;
-      flex:1; padding:14px 14px;
+      flex:1; padding:12px 12px;
       border-radius:12px;
       border:1px solid rgba(255,255,255,.18);
       background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
       color: var(--ink);
-      font-size:15px; font-weight:800; letter-spacing:.4px;
+      font-size:13px; font-weight:800; letter-spacing:.4px;
       text-transform: uppercase;
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,.06),
         0 6px 14px rgba(0,0,0,.45);
       transition: transform .1s ease, background .15s ease, box-shadow .15s ease, border-color .15s ease;
       backdrop-filter: blur(3px);
+      display:flex; align-items:center; justify-content:center; gap:6px;
     }
     button.big:active{ transform: translateY(1px); }
 
-    .done{
+    .btn-request{
+      border-color: rgba(255,209,102,.45);
+      background: linear-gradient(180deg, rgba(255,209,102,.18), rgba(255,209,102,.08));
+      color:#fff3d6;
+      text-shadow: 0 0 8px rgba(255,209,102,.45);
+    }
+    .btn-confirm{
       border-color: rgba(39,240,167,.45);
       background: linear-gradient(180deg, rgba(39,240,167,.18), rgba(39,240,167,.08));
       color:#caffec;
       text-shadow: 0 0 8px rgba(39,240,167,.45);
     }
-    .todo{
-      border-color: rgba(255,59,127,.45);
-      background: linear-gradient(180deg, rgba(255,59,127,.18), rgba(255,59,127,.08));
-      color:#ffd3e3;
-      text-shadow: 0 0 8px rgba(255,59,127,.45);
+    .btn-disabled{
+      opacity:.5; cursor:not-allowed;
     }
+
     .just-done{ animation: bounce .4s ease; }
 
     @keyframes bounce {
@@ -320,61 +331,60 @@
       transition: width .35s ease;
     }
 
-    /* Responsive */
     @media (max-width: 760px){
       .grid{ grid-template-columns: 1fr; }
       .bottom-row{ grid-column: 1; }
     }
-    /* Pop-up missions */
-.missions-wrap { margin-top: 8px; }
-.missions-list { display: grid; gap: 12px; }
-.mission-card{
-  background: linear-gradient(180deg, rgba(18,20,48,.9), rgba(12,16,36,.8));
-  border: 1px solid rgba(255,255,255,.12);
-  border-radius: 14px;
-  padding: 14px;
-  display: grid;
-  gap: 8px;
-  box-shadow: 0 8px 18px rgba(0,0,0,.45);
-}
-.mission-title{
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 800;
-  letter-spacing: .3px;
-  font-size: 18px;
-}
-.mission-meta{
-  color: var(--muted);
-  font-size: 13px;
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-.mission-amount{
-  font-weight: 800;
-  color: #caffec;
-  border:1px solid rgba(39,240,167,.35);
-  background: linear-gradient(180deg, rgba(39,240,167,.15), rgba(39,240,167,.06));
-  padding: 4px 8px; border-radius: 10px;
-}
-.mission-expectations{ font-size: 14px; line-height: 1.35; }
-.mission-actions{ display:flex; gap:10px; }
-.mission-btn{
-  border-radius: 10px; border:1px solid rgba(255,255,255,.18);
-  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
-  padding:10px 12px; font-weight: 800; letter-spacing:.4px; text-transform: uppercase;
-  cursor: pointer;
-}
-.mission-btn.accept{
-  border-color: rgba(39,240,167,.45);
-  background: linear-gradient(180deg, rgba(39,240,167,.18), rgba(39,240,167,.08));
-  color:#caffec; text-shadow: 0 0 8px rgba(39,240,167,.45);
-}
-.mission-badge{
-  font-weight:800; font-size: 12px; letter-spacing:.3px; color:#cfe2ff;
-  border:1px solid rgba(255,255,255,.18); padding:4px 8px; border-radius:999px;
-}
 
+    /* Pop-up missions */
+    .missions-wrap { margin-top: 8px; }
+    .missions-list { display: grid; gap: 12px; }
+    .mission-card{
+      background: linear-gradient(180deg, rgba(18,20,48,.9), rgba(12,16,36,.8));
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 14px;
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+      box-shadow: 0 8px 18px rgba(0,0,0,.45);
+    }
+    .mission-title{
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 800;
+      letter-spacing: .3px;
+      font-size: 18px;
+    }
+    .mission-meta{
+      color: var(--muted);
+      font-size: 13px;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .mission-amount{
+      font-weight: 800;
+      color: #caffec;
+      border:1px solid rgba(39,240,167,.35);
+      background: linear-gradient(180deg, rgba(39,240,167,.15), rgba(39,240,167,.06));
+      padding: 4px 8px; border-radius: 10px;
+    }
+    .mission-expectations{ font-size: 14px; line-height: 1.35; }
+    .mission-actions{ display:flex; gap:10px; }
+    .mission-btn{
+      border-radius: 10px; border:1px solid rgba(255,255,255,.18);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      padding:10px 12px; font-weight: 800; letter-spacing:.4px; text-transform: uppercase;
+      cursor: pointer;
+    }
+    .mission-btn.accept{
+      border-color: rgba(39,240,167,.45);
+      background: linear-gradient(180deg, rgba(39,240,167,.18), rgba(39,240,167,.08));
+      color:#caffec; text-shadow: 0 0 8px rgba(39,240,167,.45);
+    }
+    .mission-badge{
+      font-weight:800; font-size: 12px; letter-spacing:.3px; color:#cfe2ff;
+      border:1px solid rgba(255,255,255,.18); padding:4px 8px; border-radius:999px;
+    }
   </style>
 </head>
 <body>
@@ -391,13 +401,13 @@
 
     <footer>
       <div class="foot-top">
-        <div>Tap to toggle <span class="kbd">MARK AS COMPLETED</span> / <span class="kbd">COMPLETED</span>. We’ll ping Slack when a task is completed.</div>
+        <div>Kids tap <span class="kbd">Ready for Inspection</span>. Adults tap <span class="kbd">Confirm & Log</span> (code-locked). Only adult confirmations count toward progress.</div>
         <div>
-          <button id="resetBtn" class="kbd" title="Clears today’s checkmarks">Reset Today</button>
+          <button id="resetBtn" class="kbd" title="Clears today’s statuses">Reset Today</button>
         </div>
       </div>
 
-      <!-- Weekly Progress (NEW) -->
+      <!-- Weekly Progress -->
       <div class="weekly-wrap">
         <div class="weekly-label">
           <span>Weekly Completion</span>
@@ -408,11 +418,12 @@
         </div>
         <div class="subtitle" style="opacity:.8;">Goal: 100% by Friday</div>
       </div>
+
       <!-- Pop-up Missions -->
-<div id="missions" class="missions-wrap">
-  <div class="missions-header subtitle" style="margin-top:6px;">Pop-Up Missions</div>
-  <div id="missions-list" class="missions-list"></div>
-</div>
+      <div id="missions" class="missions-wrap">
+        <div class="missions-header subtitle" style="margin-top:6px;">Pop-Up Missions</div>
+        <div id="missions-list" class="missions-list"></div>
+      </div>
     </footer>
   </div>
 
@@ -420,15 +431,56 @@
 /***** CONFIG *****/
 const SLACK_WEBHOOK_PROXY_URL = "https://hooks.zapier.com/hooks/catch/24636014/um8kba2/";
 // === MISSIONS CONFIG ===
-// 1) Published CSV URL from your Google Sheet (the one ending with ?output=csv)
 const MISSIONS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQaEgUXEMo-_9EBzFaY96OxzV5hSRtsTPpEByEiyIK5Ie3TNYwh_ENfFnrLqrWJv85JKEQyDQQ9ddwh/pub?output=csv";
-// 2) Zapier Catch Hook URL that will post to Slack & delete the row
 const MISSIONS_ACCEPT_WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/24636014/um0dnqd/";
-// When the weekly bar hits 100%, send a Slack/Zapier ping here.
-// You can reuse your proxy, or make a new Zapier catch hook just for this.
-const WEEKLY_100_WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/24636014/u1oba61/"; // <— replace with your Zap URL
+const WEEKLY_100_WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/24636014/u1oba61/"; // replace if needed
 
+/* === ADULT CODES (per-adult by default) === */
+const USE_SHARED_ADULT_CODE = false;
+const SHARED_CODE_KEY = "cosmos_shared_adult_code_v1";
+const ADULT_CODES_KEY = "cosmos_adult_codes_v1";
+const miniHash = (s) => [...new TextEncoder().encode(s)].reduce((a,b)=>((a<<5)-a)+b,0)>>>0;
+const getAdultCodes = () => JSON.parse(localStorage.getItem(ADULT_CODES_KEY) || "{}");
+const saveAdultCodes = (m) => localStorage.setItem(ADULT_CODES_KEY, JSON.stringify(m));
 
+async function verifyAdultCodeFlow() {
+  if (USE_SHARED_ADULT_CODE) {
+    let shared = localStorage.getItem(SHARED_CODE_KEY);
+    if (!shared) {
+      const first = prompt("Set shared adult code (first-time setup):");
+      if (!first) return { ok:false };
+      localStorage.setItem(SHARED_CODE_KEY, miniHash(first).toString());
+      alert("Shared adult code set.");
+    }
+    const adultName = (prompt("Your name (for the log):") || "").trim();
+    if (!adultName) return { ok:false };
+    const attempt = prompt(`Enter code for ${adultName}:`);
+    if (!attempt) return { ok:false };
+    const valid = localStorage.getItem(SHARED_CODE_KEY);
+    if (miniHash(attempt).toString() !== valid) { alert("Incorrect code."); return { ok:false }; }
+    return { ok:true, adultName };
+  }
+
+  const adultName = (prompt("Adult check — your name (e.g., 'Joss', 'Milo'):") || "").trim();
+  if (!adultName) return { ok:false };
+
+  const codes = getAdultCodes();
+  if (!codes[adultName]) {
+    const c1 = prompt(`Create a code for ${adultName}:`); if (!c1) return { ok:false };
+    const c2 = prompt("Confirm code:"); if (!c2) return { ok:false };
+    if (c1 !== c2) { alert("Codes didn't match."); return { ok:false }; }
+    codes[adultName] = miniHash(c1).toString();
+    saveAdultCodes(codes);
+    alert(`${adultName}'s code set.`);
+    return { ok:true, adultName };
+  } else {
+    const attempt = prompt(`Enter ${adultName}'s code:`); if (!attempt) return { ok:false };
+    if (miniHash(attempt).toString() !== codes[adultName]) { alert("Incorrect code."); return { ok:false }; }
+    return { ok:true, adultName };
+  }
+}
+
+/* === DATA === */
 const KIDS = [
   { id: "avery",   name: "Avery" },
   { id: "adeline", name: "Adeline" },
@@ -484,7 +536,7 @@ function localDateKey(d = new Date()){
   return `${y}-${m}-${day}`;
 }
 
-// current “clock” state (mutable so we can tick to a new day)
+/* === DAY CLOCK === */
 let now = new Date();
 let weekdayName = new Intl.DateTimeFormat(undefined, { weekday: 'long' }).format(now);
 let dateKey = localDateKey(now);
@@ -502,16 +554,18 @@ function recomputeDay(){
   return changed;
 }
 
-
 const $sub = document.getElementById('sub');
 const $cards = document.getElementById('cards');
 const $allStatus = document.getElementById('all-status');
 const $resetBtn = document.getElementById('resetBtn');
-const $weeklyBar = document.getElementById('weekly-bar');     // NEW
-const $weeklyCount = document.getElementById('weekly-count');  // NEW
+const $weeklyBar = document.getElementById('weekly-bar');
+const $weeklyCount = document.getElementById('weekly-count');
 
 $sub.textContent = `${fmt.format(now)} • ${weekdayName}`;
 
+/* === STATE LOAD/SAVE ===
+   status[kidId] = "pending" | "completed" | undefined
+*/
 function loadStatusForDateKey(key){
   try { return JSON.parse(localStorage.getItem(key) || '{}'); }
   catch { return {}; }
@@ -520,7 +574,6 @@ function loadStatus(){ return loadStatusForDateKey(STORAGE_KEY); }
 function saveStatus(obj){ localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
 
 let status = loadStatus();
-let lastBounce = { id: null, did: false };
 
 function getTodayAssignments(){
   const items = CHORES_BY_DAY[weekdayName] || [];
@@ -528,67 +581,55 @@ function getTodayAssignments(){
   return items.filter(i => byId[i.kidId]).map(i => ({ ...i, kid: byId[i.kidId] }));
 }
 
-/* === Week helpers (NEW) === */
+/* === WEEK HELPERS === */
 const DOW = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 function startOfWeek(d){ // Monday as week start
   const n = new Date(d);
-  const day = n.getDay(); // 0=Sun..6=Sat
-  const diff = (day === 0 ? -6 : 1 - day); // back to Monday
+  const day = n.getDay();
+  const diff = (day === 0 ? -6 : 1 - day);
   n.setDate(n.getDate() + diff);
   n.setHours(0,0,0,0);
   return n;
 }
 function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
-
-// Use localDateKey so Monday stays Monday in your timezone
 function getWeekDateKeys(){
   const mon = startOfWeek(now);
-  // Mon–Fri
   return Array.from({length:5}, (_, i) => localDateKey(addDays(mon, i)));
 }
-
 function choresForDayName(name){
   return CHORES_BY_DAY[name] || [];
 }
 
 function computeWeeklyTotals(){
   const keys = getWeekDateKeys();
-
   let completed = 0;
   let totalPossible = 0;
 
   keys.forEach(k => {
-    // compute day name from date
     const [y, m, d] = k.split('-').map(Number);
     const dayName = DOW[new Date(y, m - 1, d).getDay()];
     const assignments = choresForDayName(dayName);
     totalPossible += assignments.length;
 
     const st = loadStatusForDateKey(`choreStatus:${k}`);
-    // count true values
     for (const kidId of Object.keys(st)) {
-      if (st[kidId]) completed++;
+      if (st[kidId] === "completed") completed++;
     }
   });
 
   return { completed, totalPossible };
 }
 function maybeNotifyWeekly100(pct, completed, totalPossible) {
-  // Use Monday’s local date key as the "week id"
   const mon = startOfWeek(new Date());
   const key = "weekly100notified:" + localDateKey(mon);
-
   if (pct === 100 && !localStorage.getItem(key)) {
     localStorage.setItem(key, "1");
     notifySlackWeekly({ pct, completed, totalPossible });
   }
-
-  // Clear flag if they dip below 100% so you can be notified again
   if (pct < 100 && localStorage.getItem(key)) {
     localStorage.removeItem(key);
   }
 }
-
 
 function renderWeeklyProgress(){
   const { completed, totalPossible } = computeWeeklyTotals();
@@ -600,7 +641,6 @@ function renderWeeklyProgress(){
 function refreshForNewDay(){
   const crossed = recomputeDay();
   if (crossed) {
-    // reload state tied to the new STORAGE_KEY
     status = loadStatus();
     $sub.textContent = `${fmt.format(now)} • ${weekdayName}`;
     render();
@@ -608,30 +648,33 @@ function refreshForNewDay(){
     if (typeof fetchMissions === 'function') fetchMissions();
   }
 }
-
-// Check once a minute
 setInterval(refreshForNewDay, 60 * 1000);
-
-// Also when app becomes visible / focused
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') refreshForNewDay();
 });
 window.addEventListener('focus', refreshForNewDay);
 
+/* === HELPERS FOR RENDER === */
+function currentStatus(kidId){ return status[kidId]; }
+function setStatus(kidId, val){ status[kidId] = val; saveStatus(status); }
+
 /* === RENDER === */
 function render(){
   const items = getTodayAssignments();
   $cards.innerHTML = '';
-  let doneCount = 0;
+  let completedCount = 0;
   const bottomCards = [];
 
   items.forEach((it, index) => {
-    const done = !!status[it.kidId];
-    if(done) doneCount++;
+    const st = currentStatus(it.kidId); // "pending" | "completed" | undefined
+    const isPending = (st === "pending");
+    const isDone = (st === "completed");
+    if(isDone) completedCount++;
 
     const card = document.createElement('div');
-    card.className = 'card ' + (done ? 'done-glow' : 'todo-glow');
+    card.className = 'card ' + (isDone ? 'done-glow' : isPending ? 'pending-glow' : 'todo-glow');
 
+    // header
     const kid = document.createElement('div');
     kid.className = 'kid';
     const av = document.createElement('div');
@@ -639,46 +682,62 @@ function render(){
     av.textContent = it.kid.name[0].toUpperCase();
     const name = document.createElement('h3');
     name.textContent = it.kid.name;
-
     const pill = document.createElement('div');
-    pill.className = `status ${done ? 'good' : 'bad'}`;
-    const dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = done ? 'var(--good)' : 'var(--bad)';
-    const pillTxt = document.createElement('span'); pillTxt.textContent = done ? 'DONE' : 'TO DO';
+    pill.className = 'status ' + (isDone ? 'good' : isPending ? 'warn' : 'bad');
+    const dot = document.createElement('span'); dot.className = 'dot';
+    dot.style.background = isDone ? 'var(--good)' : isPending ? 'var(--warn)' : 'var(--bad)';
+    const pillTxt = document.createElement('span'); pillTxt.textContent = isDone ? 'DONE' : isPending ? 'PENDING' : 'TO DO';
     pill.append(dot, pillTxt);
-
     kid.append(av, name, pill);
 
+    // chore title
     const chore = document.createElement('div');
     chore.className = 'chore';
     chore.textContent = it.chore;
 
+    // buttons (per card)
     const btns = document.createElement('div');
     btns.className = 'btns';
 
-    const btn = document.createElement('button');
-    btn.className = `big ${done ? 'done' : 'todo'}`;
-    btn.textContent = done ? 'COMPLETED' : 'Mark as COMPLETED';
+    const btnRequest = document.createElement('button');
+    btnRequest.className = 'big btn-request';
+    btnRequest.textContent = '🚀 Ready for Inspection';
+    if (isPending || isDone) btnRequest.classList.add('btn-disabled');
 
-    if (done && lastBounce.id === it.kidId && lastBounce.did) {
-      btn.classList.add('just-done');
-    }
+    btnRequest.addEventListener('click', async () => {
+      if (btnRequest.classList.contains('btn-disabled')) return;
+      setStatus(it.kidId, "pending");
+      render();
+      try{
+        await notifyInspectionRequested(it.kid.name, it.chore);
+      }catch{}
+    });
 
-    btn.addEventListener('click', async () => {
-  const nowDone = !done;
-  status[it.kidId] = nowDone;
-  saveStatus(status);
-  lastBounce = { id: it.kidId, did: nowDone };
-  render();                 // re-render cards
-  renderWeeklyProgress();   // update weekly bar (NEW)
+    const btnConfirm = document.createElement('button');
+    btnConfirm.className = 'big btn-confirm';
+    btnConfirm.textContent = '🛰️ Confirm & Log';
+    if (isDone) btnConfirm.classList.add('just-done');
 
-  if (nowDone) { 
-    document.getElementById('completeSound').play();
-    await notifySlack(it.kid.name, it.chore); 
-  }
-});  // 👈 closes both the function and addEventListener
+    btnConfirm.addEventListener('click', async () => {
+      const result = await verifyAdultCodeFlow();
+      if (!result.ok) return;
 
+      // Optional guard: require pending first
+      if (currentStatus(it.kidId) !== "pending") {
+        const proceed = confirm("No inspection request logged. Confirm anyway?");
+        if (!proceed) return;
+      }
 
-    btns.append(btn);
+      setStatus(it.kidId, "completed");
+      render();
+      renderWeeklyProgress();
+      document.getElementById('completeSound').play();
+      try{
+        await notifyChoreVerified(it.kid.name, it.chore, result.adultName);
+      }catch{}
+    });
+
+    btns.append(btnRequest, btnConfirm);
     card.append(kid, chore, btns);
 
     if(index < 3){
@@ -696,10 +755,10 @@ function render(){
   }
 
   const total = items.length;
-  $allStatus.textContent = total ? `${doneCount}/${total} completed` : 'No missions scheduled for today';
-  lastBounce = { id: null, did: false };
+  $allStatus.textContent = total ? `${completedCount}/${total} confirmed` : 'No missions scheduled for today';
 }
 
+/* === TOAST + SLACK === */
 function showToast(msg){
   let t = document.getElementById('toast');
   if(!t){
@@ -725,108 +784,71 @@ function showToast(msg){
   clearTimeout(showToast._timer);
   showToast._timer = setTimeout(()=>{ t.style.opacity = '0'; }, 1800);
 }
-async function notifySlack(kidName, chore){
-  if(!SLACK_WEBHOOK_PROXY_URL){
-    console.warn('[notifySlack] No webhook URL configured.');
-    return;
-  }
 
-  const url = SLACK_WEBHOOK_PROXY_URL + (SLACK_WEBHOOK_PROXY_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
-
-  // 1) form-urlencoded (current behavior, but with better logging + keepalive)
-  const formPayload = new URLSearchParams({
-    kid: kidName,
-    chore,
-    date: dateKey,
-    // helpful extras:
-    weekday: weekdayName,
-    ts: new Date().toISOString()
-  });
-
-  const commonOpts = { method: 'POST', keepalive: true };
-
-  // helper to attempt a request with nice logging
-  const tryFetch = async (desc, init) => {
-    try {
-      console.log(`[notifySlack] Trying ${desc}…`, init);
-      const res = await fetch(url, init);
-      // Even if CORS blocks reading, the request is still sent.
-      console.log(`[notifySlack] ${desc} dispatched. CORS may hide status.`, { ok: res.ok, status: res.status });
-      showToast('Chore sent to Slack (attempted).'); // UI confirm regardless of CORS
-      return true;
-    } catch (err) {
-      console.warn(`[notifySlack] ${desc} failed:`, err);
-      return false;
-    }
-  };
-
-  // Attempt 1: x-www-form-urlencoded (simple request, no preflight)
-  const ok1 = await tryFetch('form-urlencoded', {
-    ...commonOpts,
+function slackPost(url, payload, desc="form-urlencoded"){
+  const u = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+  const init = {
+    method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-    body: formPayload
-  });
-  if (ok1) return;
+    body: new URLSearchParams(payload),
+    keepalive: true
+  };
+  return fetch(u, init).then(r => {
+    console.log(`[slack] ${desc} dispatched`, { ok: r.ok, status: r.status });
+    showToast('Transmitted to Slack.');
+  }).catch(e => console.warn('[slack] send failed', e));
+}
 
-  // Attempt 2: JSON with the same fields your Zap likely expects
-  const jsonPayload = {
+async function notifyInspectionRequested(kidName, chore){
+  if(!SLACK_WEBHOOK_PROXY_URL) return;
+  const payload = {
+    type: "inspection_requested",
     kid: kidName,
     chore,
     date: dateKey,
     weekday: weekdayName,
     ts: new Date().toISOString()
   };
-  const ok2 = await tryFetch('application/json (structured)', {
-    ...commonOpts,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(jsonPayload)
-  });
-  if (ok2) return;
+  await slackPost(SLACK_WEBHOOK_PROXY_URL, payload, "inspection_requested");
+}
 
-  // Attempt 3: Slack-compatible "text" fallback (some Zaps expect a single text field)
-  const fallback = {
-    text: `✅ ${kidName} completed "${chore}" on ${weekdayName} (${dateKey}).`
+async function notifyChoreVerified(kidName, chore, adultName){
+  if(!SLACK_WEBHOOK_PROXY_URL) return;
+  const payload = {
+    type: "chore_verified",
+    kid: kidName,
+    chore,
+    adult: adultName || "Adult",
+    date: dateKey,
+    weekday: weekdayName,
+    ts: new Date().toISOString()
   };
-  await tryFetch('application/json (text fallback)', {
-    ...commonOpts,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(fallback)
-  });
+  await slackPost(SLACK_WEBHOOK_PROXY_URL, payload, "chore_verified");
 }
 
 async function notifySlackWeekly({ pct, completed, totalPossible }) {
   const url = WEEKLY_100_WEBHOOK_URL || SLACK_WEBHOOK_PROXY_URL;
   if (!url) return;
 
-  // Week label (Mon–Fri) in local time
   const mon = startOfWeek(new Date());
   const fri = addDays(mon, 4);
   const weekStart = localDateKey(mon);
   const weekEnd   = localDateKey(fri);
 
-  const payload = new URLSearchParams({
+  const payload = {
     type: "weekly100",
-    week_id: weekStart,              // stable weekly key
+    week_id: weekStart,
     week_start: weekStart,
     week_end: weekEnd,
     pct: String(pct),
     completed: String(completed),
     totalPossible: String(totalPossible),
     ts: new Date().toISOString()
-  });
-
-  try{
-    await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-      body: payload,
-      keepalive: true
-    });
-  }catch(err){
-    console.warn("Weekly 100% Slack notify failed:", err);
-  }
+  };
+  await slackPost(url, payload, "weekly100");
 }
 
+/* === CSV / MISSIONS (unchanged) === */
 function parseCSV(text){
   const rows = [];
   let i = 0, cur = [], field = '', inQuotes = false;
@@ -860,7 +882,6 @@ function parseCSV(text){
   });
 }
 
-// --- Missions UI ---
 const $missionsList = document.getElementById('missions-list');
 
 function renderMissions(list){
@@ -919,7 +940,6 @@ function renderMissions(list){
       });
 
       try{
-        console.log('POSTing accept', MISSIONS_ACCEPT_WEBHOOK_URL, Object.fromEntries(payload));
         await fetch(MISSIONS_ACCEPT_WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
@@ -931,7 +951,6 @@ function renderMissions(list){
         console.warn('Accept webhook failed', e);
       }
 
-      // Optimistic UI removal
       card.remove();
       if(!$missionsList.children.length){
         const empty = document.createElement('div');
@@ -948,7 +967,6 @@ function renderMissions(list){
   });
 }
 
-// --- Fetch missions from the published CSV ---
 async function fetchMissions(){
   if (!MISSIONS_CSV_URL){ renderMissions([]); return; }
   const url = MISSIONS_CSV_URL + (MISSIONS_CSV_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
@@ -957,12 +975,9 @@ async function fetchMissions(){
     const res = await fetch(url, { cache: 'no-store' });
     if(!res.ok) throw new Error('CSV fetch failed: ' + res.status);
     const text = await res.text();
-    console.log('[missions] raw csv length:', text.length);
 
     let rows = parseCSV(text);
-    console.log('[missions] parsed rows:', rows.length, rows[0]);
 
-    // Normalize likely header variants
     const norm = rows.map(r => ({
       id:           r.id || r.ID || r.Timestamp || r.timestamp || r.createdAt || '',
       title:        r.title || r['Mission Title'] || r['Title'] || '',
@@ -972,9 +987,7 @@ async function fetchMissions(){
       createdAt:    r.createdAt || r.Timestamp || r.timestamp || ''
     }));
 
-    // Keep rows that have at least id + title
     const items = norm.filter(x => (x.id && x.title));
-    console.log('[missions] normalized items:', items.length);
 
     renderMissions(items);
   }catch(e){
@@ -983,23 +996,24 @@ async function fetchMissions(){
   }
 }
 
-/* keep only recent history, but DO NOT remove this-week keys (NEW) */
+/* prune history but keep this week */
 (function pruneOldButKeepThisWeek(){
   const keep = new Set(getWeekDateKeys().map(k => `choreStatus:${k}`));
-  const now = Date.now();
+  const nowT = Date.now();
   for(const k of Object.keys(localStorage)){
     if(!k.startsWith('choreStatus:')) continue;
     if(keep.has(k)) continue;
-    // keep ~2 weeks of history just in case; else remove
     const dateStr = k.split(':')[1];
     const t = Date.parse(dateStr);
-    if (!Number.isNaN(t) && (now - t) > 14*24*60*60*1000){
+    if (!Number.isNaN(t) && (nowT - t) > 14*24*60*60*1000){
       localStorage.removeItem(k);
     }
   }
 })();
 
-$resetBtn.addEventListener('click', () => { status = {}; saveStatus(status); render(); renderWeeklyProgress(); });
+document.getElementById('resetBtn').addEventListener('click', () => {
+  status = {}; saveStatus(status); render(); renderWeeklyProgress();
+});
 
 /* initial render */
 render();
