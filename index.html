@@ -704,14 +704,21 @@ function render(){
     btnRequest.textContent = '🚀 Ready for Inspection';
     if (isPending || isDone) btnRequest.classList.add('btn-disabled');
 
-    btnRequest.addEventListener('click', async () => {
-      if (btnRequest.classList.contains('btn-disabled')) return;
-      setStatus(it.kidId, "pending");
-      render();
-      try{
-        await notifyInspectionRequested(it.kid.name, it.chore);
-      }catch{}
-    });
+    btnRequest.addEventListener('click', async (ev) => {
+  ev.stopPropagation();
+  if (btnRequest.classList.contains('btn-disabled')) return;
+
+  // disable immediately to prevent double taps
+  btnRequest.classList.add('btn-disabled');
+  setStatus(it.kidId, "pending");
+  render();
+
+  try {
+    await notifyInspectionRequested(it.kid.name, it.chore);
+  } catch (e) {
+    console.warn('Slack send failed', e);
+  }
+});
 
     const btnConfirm = document.createElement('button');
     btnConfirm.className = 'big btn-confirm';
@@ -1014,6 +1021,8 @@ async function fetchMissions(){
 document.getElementById('resetBtn').addEventListener('click', () => {
   status = {}; saveStatus(status); render(); renderWeeklyProgress();
 });
+// Prevent stale event listeners from piling up
+$cards.replaceChildren(); 
 
 /* initial render */
 render();
