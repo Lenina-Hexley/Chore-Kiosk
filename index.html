@@ -542,9 +542,9 @@ async function verifyAdultCodeFlow() {
     }
 
     const adultName = await textPrompt({
-      title: "Adult Check",
+      title: "Commander ID",
       label: "Your name",
-      placeholder: "e.g., Joss or Milo",
+      placeholder: "Enter name here",
       type: "text"
     });
     if (!adultName) return { ok:false };
@@ -564,9 +564,9 @@ async function verifyAdultCodeFlow() {
 
   // Per-adult code mode
   const adultName = await textPrompt({
-    title: "Adult Check",
+    title: "Commander ID",
     label: "Your name",
-    placeholder: "e.g., Joss or Milo",
+    placeholder: "Enter name here",
     type: "text"
   });
   if (!adultName) return { ok:false };
