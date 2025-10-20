@@ -461,7 +461,7 @@ async function verifyAdultCodeFlow() {
     return { ok:true, adultName };
   }
 
-  const adultName = (prompt("Adult check — your name (e.g., 'Joss', 'Milo'):") || "").trim();
+  const adultName = (prompt("Commander ID Required: Please enter your name:") || "").trim();
   if (!adultName) return { ok:false };
 
   const codes = getAdultCodes();
