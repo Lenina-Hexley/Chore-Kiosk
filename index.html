@@ -619,17 +619,6 @@ function computeWeeklyTotals(){
 
   return { completed, totalPossible };
 }
-function maybeNotifyWeekly100(pct, completed, totalPossible) {
-  const mon = startOfWeek(new Date());
-  const key = "weekly100notified:" + localDateKey(mon);
-  if (pct === 100 && !localStorage.getItem(key)) {
-    localStorage.setItem(key, "1");
-    notifySlackWeekly({ pct, completed, totalPossible });
-  }
-  if (pct < 100 && localStorage.getItem(key)) {
-    localStorage.removeItem(key);
-  }
-}
 
 function renderWeeklyProgress(){
   const { completed, totalPossible } = computeWeeklyTotals();
@@ -720,29 +709,28 @@ function render(){
   }
 });
 
-    const btnConfirm = document.createElement('button');
-    btnConfirm.className = 'big btn-confirm';
-    btnConfirm.textContent = '🛰️ Confirm & Log';
-    if (isDone) btnConfirm.classList.add('just-done');
+   const btnConfirm = document.createElement('button');
+btnConfirm.className = 'big btn-confirm';
+btnConfirm.textContent = '🛰️ Confirm & Log';
+if (isDone) btnConfirm.classList.add('just-done');
 
-    btnConfirm.addEventListener('click', async () => {
-      const result = await verifyAdultCodeFlow();
-      if (!result.ok) return;
+btnConfirm.addEventListener('click', async () => {
+  const result = await verifyAdultCodeFlow();
+  if (!result.ok) return;
 
-      // Optional guard: require pending first
-      if (currentStatus(it.kidId) !== "pending") {
-        const proceed = confirm("No inspection request logged. Confirm anyway?");
-        if (!proceed) return;
-      }
+  // Optional guard: require pending first
+  if (currentStatus(it.kidId) !== "pending") {
+    const proceed = confirm("No inspection request logged. Confirm anyway?");
+    if (!proceed) return;
+  }
 
-      setStatus(it.kidId, "completed");
-      render();
-      renderWeeklyProgress();
-      document.getElementById('completeSound').play();
-      try{
-        await notifyChoreVerified(it.kid.name, it.chore, result.adultName);
-      }catch{}
-    });
+  setStatus(it.kidId, "completed");
+  render();
+  renderWeeklyProgress();
+  document.getElementById('completeSound').play();
+
+  // Slack post removed to prevent duplicate Zap triggers
+});
 
     btns.append(btnRequest, btnConfirm);
     card.append(kid, chore, btns);
@@ -817,42 +805,6 @@ async function notifyInspectionRequested(kidName, chore){
     ts: new Date().toISOString()
   };
   await slackPost(SLACK_WEBHOOK_PROXY_URL, payload, "inspection_requested");
-}
-
-async function notifyChoreVerified(kidName, chore, adultName){
-  if(!SLACK_WEBHOOK_PROXY_URL) return;
-  const payload = {
-    type: "chore_verified",
-    kid: kidName,
-    chore,
-    adult: adultName || "Adult",
-    date: dateKey,
-    weekday: weekdayName,
-    ts: new Date().toISOString()
-  };
-  await slackPost(SLACK_WEBHOOK_PROXY_URL, payload, "chore_verified");
-}
-
-async function notifySlackWeekly({ pct, completed, totalPossible }) {
-  const url = WEEKLY_100_WEBHOOK_URL || SLACK_WEBHOOK_PROXY_URL;
-  if (!url) return;
-
-  const mon = startOfWeek(new Date());
-  const fri = addDays(mon, 4);
-  const weekStart = localDateKey(mon);
-  const weekEnd   = localDateKey(fri);
-
-  const payload = {
-    type: "weekly100",
-    week_id: weekStart,
-    week_start: weekStart,
-    week_end: weekEnd,
-    pct: String(pct),
-    completed: String(completed),
-    totalPossible: String(totalPossible),
-    ts: new Date().toISOString()
-  };
-  await slackPost(url, payload, "weekly100");
 }
 
 /* === CSV / MISSIONS (unchanged) === */
