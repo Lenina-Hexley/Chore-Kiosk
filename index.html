@@ -385,6 +385,42 @@
       font-weight:800; font-size: 12px; letter-spacing:.3px; color:#cfe2ff;
       border:1px solid rgba(255,255,255,.18); padding:4px 8px; border-radius:999px;
     }
+    /* ===== Modal prompt styles ===== */
+.cosmos-modal.hidden { display: none; }
+.cosmos-modal {
+  position: fixed; inset: 0; z-index: 9999;
+  display: grid; place-items: center;
+  background: rgba(0,0,0,.45);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.cosmos-modal-card{
+  width: min(420px, 92vw);
+  background: linear-gradient(180deg, rgba(18,20,48,.98), rgba(12,16,36,.95));
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 18px 42px rgba(0,0,0,.55);
+}
+.cosmos-modal-card h3{
+  margin: 0 0 10px 0; font-family: 'Orbitron', sans-serif;
+  font-weight: 800; letter-spacing: .3px; color: #e8f0ff;
+}
+.cosmos-field{ display: grid; gap: 6px; margin: 8px 0 14px; }
+.cosmos-field span{ color: #9aa7c7; font-weight: 700; font-size: 13px; }
+#cosmos-modal-input{
+  height: 42px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.06);
+  color: #e8f0ff; font-size: 16px; padding: 8px 10px;
+  outline: none;
+}
+#cosmos-modal-input:focus{
+  border-color: rgba(123,255,247,.55);
+  box-shadow: 0 0 0 3px rgba(123,255,247,.18);
+}
+.cosmos-actions{ display:flex; gap:10px; justify-content:flex-end; }
+
   </style>
 </head>
 <body>
@@ -443,42 +479,134 @@ const miniHash = (s) => [...new TextEncoder().encode(s)].reduce((a,b)=>((a<<5)-a
 const getAdultCodes = () => JSON.parse(localStorage.getItem(ADULT_CODES_KEY) || "{}");
 const saveAdultCodes = (m) => localStorage.setItem(ADULT_CODES_KEY, JSON.stringify(m));
 
+  // Promise-based in-page text prompt that reliably opens iPad keyboard
+function textPrompt({ title, label, placeholder = "", type = "text" }){
+  return new Promise(resolve => {
+    const modal = document.getElementById('cosmos-modal');
+    const titleEl = document.getElementById('cosmos-modal-title');
+    const labelEl = document.getElementById('cosmos-modal-label');
+    const input = document.getElementById('cosmos-modal-input');
+    const okBtn = document.getElementById('cosmos-ok');
+    const cancelBtn = document.getElementById('cosmos-cancel');
+
+    // Configure
+    titleEl.textContent = title || "Input";
+    labelEl.textContent = label || "Value";
+    input.type = (type === "password") ? "password" : "text";
+    input.setAttribute("inputmode", type === "number" ? "numeric" : "text");
+    input.value = "";
+    input.placeholder = placeholder || "";
+
+    // Show
+    modal.classList.remove('hidden');
+
+    // iOS focus trick: ensure element is in DOM & visible, then focus after a tick
+    requestAnimationFrame(() => {
+      setTimeout(() => { input.focus(); }, 0);
+    });
+
+    const cleanup = () => {
+      modal.classList.add('hidden');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      input.removeEventListener('keydown', onKey);
+    };
+
+    const onOk = () => { const v = input.value.trim(); cleanup(); resolve(v || null); };
+    const onCancel = () => { cleanup(); resolve(null); };
+    const onKey = (e) => {
+      if (e.key === "Enter") onOk();
+      if (e.key === "Escape") onCancel();
+    };
+
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    input.addEventListener('keydown', onKey);
+  });
+}
+
+  
 async function verifyAdultCodeFlow() {
   if (USE_SHARED_ADULT_CODE) {
     let shared = localStorage.getItem(SHARED_CODE_KEY);
     if (!shared) {
-      const first = prompt("Set shared adult code (first-time setup):");
+      const first = await textPrompt({
+        title: "Set Shared Adult Code",
+        label: "New code",
+        placeholder: "Create a shared code",
+        type: "password"
+      });
       if (!first) return { ok:false };
       localStorage.setItem(SHARED_CODE_KEY, miniHash(first).toString());
       alert("Shared adult code set.");
     }
-    const adultName = (prompt("Your name (for the log):") || "").trim();
+
+    const adultName = await textPrompt({
+      title: "Adult Check",
+      label: "Your name",
+      placeholder: "e.g., Joss or Milo",
+      type: "text"
+    });
     if (!adultName) return { ok:false };
-    const attempt = prompt(`Enter code for ${adultName}:`);
+
+    const attempt = await textPrompt({
+      title: "Enter Shared Code",
+      label: `Code for ${adultName}`,
+      placeholder: "Enter code",
+      type: "password"
+    });
     if (!attempt) return { ok:false };
+
     const valid = localStorage.getItem(SHARED_CODE_KEY);
     if (miniHash(attempt).toString() !== valid) { alert("Incorrect code."); return { ok:false }; }
     return { ok:true, adultName };
   }
 
-  const adultName = (prompt("Commander ID Required: Please enter your name:") || "").trim();
+  // Per-adult code mode
+  const adultName = await textPrompt({
+    title: "Adult Check",
+    label: "Your name",
+    placeholder: "e.g., Joss or Milo",
+    type: "text"
+  });
   if (!adultName) return { ok:false };
 
   const codes = getAdultCodes();
   if (!codes[adultName]) {
-    const c1 = prompt(`Create a code for ${adultName}:`); if (!c1) return { ok:false };
-    const c2 = prompt("Confirm code:"); if (!c2) return { ok:false };
+    const c1 = await textPrompt({
+      title: `Create Code for ${adultName}`,
+      label: "New code",
+      placeholder: "Create a code",
+      type: "password"
+    });
+    if (!c1) return { ok:false };
+
+    const c2 = await textPrompt({
+      title: "Confirm Code",
+      label: "Re-enter code",
+      placeholder: "Confirm your code",
+      type: "password"
+    });
+    if (!c2) return { ok:false };
+
     if (c1 !== c2) { alert("Codes didn't match."); return { ok:false }; }
     codes[adultName] = miniHash(c1).toString();
     saveAdultCodes(codes);
     alert(`${adultName}'s code set.`);
     return { ok:true, adultName };
   } else {
-    const attempt = prompt(`Enter ${adultName}'s code:`); if (!attempt) return { ok:false };
+    const attempt = await textPrompt({
+      title: `Enter ${adultName}'s Code`,
+      label: "Code",
+      placeholder: "Enter your code",
+      type: "password"
+    });
+    if (!attempt) return { ok:false };
     if (miniHash(attempt).toString() !== codes[adultName]) { alert("Incorrect code."); return { ok:false }; }
     return { ok:true, adultName };
   }
 }
+
 
 /* === DATA === */
 const KIDS = [
@@ -993,5 +1121,26 @@ setInterval(fetchMissions, 30000); // refresh every 30s
   }
 </script>
   <audio id="completeSound" src="./sounds/ding.mp3" preload="auto"></audio>
+  <!-- Inline modal prompt (replaces window.prompt) -->
+<div id="cosmos-modal" class="cosmos-modal hidden" role="dialog" aria-modal="true" aria-labelledby="cosmos-modal-title">
+  <div class="cosmos-modal-card">
+    <h3 id="cosmos-modal-title">Input</h3>
+    <label class="cosmos-field">
+      <span id="cosmos-modal-label">Value</span>
+      <input id="cosmos-modal-input"
+             type="text"
+             inputmode="text"
+             autocomplete="off"
+             autocapitalize="none"
+             autocorrect="off"
+             spellcheck="false" />
+    </label>
+    <div class="cosmos-actions">
+      <button id="cosmos-cancel" type="button" class="kbd">Cancel</button>
+      <button id="cosmos-ok" type="button" class="kbd">OK</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
