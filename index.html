@@ -420,6 +420,171 @@
   box-shadow: 0 0 0 3px rgba(123,255,247,.18);
 }
 .cosmos-actions{ display:flex; gap:10px; justify-content:flex-end; }
+/* === Low-On (Checklist) — COSMOS styling === */
+#lowon-fab{
+  position: fixed; right: 16px; bottom: 16px;
+  font-size: 14px; padding: 10px 14px; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
+  color: var(--ink);
+  box-shadow: 0 10px 24px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.05);
+  backdrop-filter: blur(4px);
+  font-weight: 800; letter-spacing: .3px; text-transform: uppercase;
+}
+
+/* Dialog shell */
+#lowon-dialog.lowon{
+  width: min(520px, 94vw);
+  border: none; padding: 0; border-radius: 16px; overflow: hidden;
+  background: linear-gradient(180deg, rgba(18,20,48,.92), rgba(12,16,36,.86));
+  box-shadow: 0 24px 80px rgba(0,0,0,.65);
+  position: relative; isolation: isolate;
+}
+#lowon-dialog.lowon::backdrop{ background: rgba(0,0,0,.55); }
+
+/* Neon halo border to match cards */
+#lowon-dialog.lowon::before{
+  content:""; position:absolute; inset:0; border-radius:16px; padding:1px;
+  background: linear-gradient(135deg, var(--halo), var(--halo2));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  pointer-events: none; opacity:.55;
+}
+
+/* Header */
+#lowon-form header{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:14px 16px;
+  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
+  border-bottom: 1px solid var(--edge);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.20);
+}
+#lowon-form h3{ margin:0; font-size:18px; font-weight:800; letter-spacing:.3px; }
+#lowon-close{
+  border:1px solid rgba(255,255,255,.18); background: transparent; color: var(--ink);
+  width:34px; height:34px; border-radius:10px; font-size:16px; cursor:pointer;
+}
+
+/* Checklist grid */
+.lowon-list{
+  list-style:none; margin:0; padding:16px;
+  display:grid; grid-template-columns: 1fr 1fr; gap:10px;
+}
+@media (max-width: 520px){ .lowon-list{ grid-template-columns: 1fr; } }
+
+/* Item pill */
+.lowon-list li{
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 12px; padding:10px 12px;
+  display:flex; align-items:center; gap:10px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
+}
+
+.lowon-list label{
+  display:flex; align-items:center; gap:10px; width:100%; cursor:pointer;
+  font-weight:700; letter-spacing:.2px;
+}
+
+/* Pretty checkbox (accent uses your theme) */
+.lowon-list input[type="checkbox"]{
+  appearance: none; width:18px; height:18px; border-radius:4px;
+  border:1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.02);
+  display:grid; place-items:center;
+}
+.lowon-list input[type="checkbox"]::after{
+  content:""; width:12px; height:12px; border-radius:2px; transform: scale(0);
+  background: linear-gradient(135deg, rgba(39,240,167,.95), rgba(123,255,247,.95));
+  box-shadow: 0 0 10px rgba(39,240,167,.45);
+  transition: transform .12s ease;
+}
+.lowon-list input[type="checkbox"]:checked::after{ transform: scale(1); }
+
+/* Footer + button (matches your accept button vibe) */
+#lowon-form footer{
+  display:flex; justify-content:flex-end; gap:8px; padding:12px 16px;
+  border-top:1px solid var(--edge);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+}
+#lowon-submit{
+  border-radius: 10px;
+  border:1px solid rgba(39,240,167,.45);
+  background: linear-gradient(180deg, rgba(39,240,167,.18), rgba(39,240,167,.08));
+  color:#caffec; text-shadow: 0 0 8px rgba(39,240,167,.45);
+  padding:10px 14px; font-weight:800; letter-spacing:.4px; text-transform: uppercase;
+  cursor:pointer; box-shadow: inset 0 0 0 1px rgba(255,255,255,.05), 0 8px 18px rgba(0,0,0,.45);
+}
+#lowon-submit:active{ transform: translateY(1px); }
+/* === Low-On: solid buttons (no translucency) === */
+
+/* Floating FAB */
+#lowon-fab{
+  background: #2b2f5b !important;     /* solid */
+  border: 1px solid #39407a !important;
+  box-shadow: 0 10px 24px rgba(0,0,0,.45) !important;
+}
+
+/* Close “✕” */
+#lowon-close{
+  background: #151a34 !important;      /* solid dark tile */
+  border: 1px solid rgba(255,255,255,.18) !important;
+}
+
+/* Send to Slack */
+#lowon-submit{
+  background: #19b87e !important;      /* nebula green, solid */
+  border: 1px solid #19b87e !important;
+  color: #0a141c !important;            /* high contrast text */
+  text-shadow: none !important;
+}
+/* === Low-On: make all text white === */
+#lowon-dialog.lowon,
+#lowon-dialog.lowon * {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+#lowon-submit {
+  color: #ffffff !important;        /* white text on green button */
+}
+
+#lowon-fab,
+#lowon-close {
+  color: #ffffff !important;        /* white icon/text on dark buttons */
+}
+
+/* Optional: checkbox labels and headers even brighter for clarity */
+.lowon-list label,
+#lowon-form header h3 {
+  color: #ffffff !important;
+}
+
+/* Hover / active feedback */
+#lowon-fab:hover{ filter: brightness(1.06); }
+#lowon-fab:active{ transform: translateY(1px); }
+
+#lowon-close:hover{ filter: brightness(1.08); }
+#lowon-close:active{ transform: translateY(1px); }
+
+#lowon-submit:hover{
+  filter: brightness(1.08);
+  box-shadow: 0 0 18px rgba(25,184,126,.35);
+}
+#lowon-submit:active{ transform: translateY(1px); }
+
+/* Optional: make the checklist item pills solid too */
+.lowon-list li{
+  background: #11162c !important;      /* solid deep slate */
+  border: 1px solid rgba(255,255,255,.14) !important;
+}
+/* Keep the inline PIN prompt crisp and focusable */
+#cosmos-modal { background: rgba(0,0,0,.5) !important; }
+#cosmos-modal input#cosmos-modal-input {
+  -webkit-user-select: text;
+  user-select: text;
+  caret-color: #fff;
+}
 
   </style>
 </head>
@@ -479,33 +644,75 @@ const miniHash = (s) => [...new TextEncoder().encode(s)].reduce((a,b)=>((a<<5)-a
 const getAdultCodes = () => JSON.parse(localStorage.getItem(ADULT_CODES_KEY) || "{}");
 const saveAdultCodes = (m) => localStorage.setItem(ADULT_CODES_KEY, JSON.stringify(m));
 
-  // Promise-based in-page text prompt that reliably opens iPad keyboard
-function textPrompt({ title, label, placeholder = "", type = "text" }){
+// Promise-based inline prompt with aggressive focus (and numeric keypad)
+function textPrompt({
+  title,
+  label,
+  placeholder = "",
+  type = "text",      // "text" | "password"
+  numeric = false,    // true for PINs (shows numeric keypad on mobile)
+  maxlength = 12
+}){
   return new Promise(resolve => {
-    const modal = document.getElementById('cosmos-modal');
-    const titleEl = document.getElementById('cosmos-modal-title');
-    const labelEl = document.getElementById('cosmos-modal-label');
-    const input = document.getElementById('cosmos-modal-input');
-    const okBtn = document.getElementById('cosmos-ok');
+    const modal     = document.getElementById('cosmos-modal');
+    const titleEl   = document.getElementById('cosmos-modal-title');
+    const labelEl   = document.getElementById('cosmos-modal-label');
+    const input     = document.getElementById('cosmos-modal-input');
+    const okBtn     = document.getElementById('cosmos-ok');
     const cancelBtn = document.getElementById('cosmos-cancel');
 
-    // Configure
+    // Configure content
     titleEl.textContent = title || "Input";
     labelEl.textContent = label || "Value";
     input.type = (type === "password") ? "password" : "text";
-    input.setAttribute("inputmode", type === "number" ? "numeric" : "text");
     input.value = "";
     input.placeholder = placeholder || "";
+    input.autocomplete = "one-time-code";
+    input.maxLength = maxlength;
+
+    // Numeric keypad hint
+    if (numeric) {
+      input.inputMode = "numeric";
+      input.pattern   = "[0-9]*";
+    } else {
+      input.inputMode = "text";
+      input.removeAttribute("pattern");
+    }
 
     // Show
     modal.classList.remove('hidden');
 
-    // iOS focus trick: ensure element is in DOM & visible, then focus after a tick
+    // Aggressive focus sequence
+    input.focus({ preventScroll: true });
+    input.setSelectionRange(input.value.length, input.value.length);
+
     requestAnimationFrame(() => {
-      setTimeout(() => { input.focus(); }, 0);
+      if (document.activeElement !== input) {
+        input.focus({ preventScroll: true });
+        input.setSelectionRange(input.value.length, input.value.length);
+      }
     });
 
+    const t = setTimeout(() => {
+      if (document.activeElement !== input) {
+        input.focus({ preventScroll: true });
+        input.click();
+        input.setSelectionRange(input.value.length, input.value.length);
+      }
+    }, 50);
+
+    // Refocus if user taps the card
+    const card = modal.querySelector('.cosmos-modal-card');
+    const refocus = () => {
+      input.focus({ preventScroll: true });
+      input.setSelectionRange(input.value.length, input.value.length);
+    };
+    card.addEventListener('pointerdown', refocus);
+
+    // Cleanup & resolve
     const cleanup = () => {
+      clearTimeout(t);
+      card.removeEventListener('pointerdown', refocus);
       modal.classList.add('hidden');
       okBtn.removeEventListener('click', onOk);
       cancelBtn.removeEventListener('click', onCancel);
@@ -530,12 +737,8 @@ async function verifyAdultCodeFlow() {
   if (USE_SHARED_ADULT_CODE) {
     let shared = localStorage.getItem(SHARED_CODE_KEY);
     if (!shared) {
-      const first = await textPrompt({
-        title: "Set Shared Adult Code",
-        label: "New code",
-        placeholder: "Create a shared code",
-        type: "password"
-      });
+      const first = await textPrompt({ title: "Set Shared Adult Code", label: "New PIN", placeholder: "4–6 digits", type: "password", numeric: true, maxlength: 6 });
+
       if (!first) return { ok:false };
       localStorage.setItem(SHARED_CODE_KEY, miniHash(first).toString());
       alert("Shared adult code set.");
@@ -549,12 +752,8 @@ async function verifyAdultCodeFlow() {
     });
     if (!adultName) return { ok:false };
 
-    const attempt = await textPrompt({
-      title: "Enter Shared Code",
-      label: `Code for ${adultName}`,
-      placeholder: "Enter code",
-      type: "password"
-    });
+    const attempt = await textPrompt({ title: "Enter Shared PIN", label: `PIN for ${adultName}`, placeholder: "••••", type: "password", numeric: true, maxlength: 6 });
+
     if (!attempt) return { ok:false };
 
     const valid = localStorage.getItem(SHARED_CODE_KEY);
@@ -573,20 +772,12 @@ async function verifyAdultCodeFlow() {
 
   const codes = getAdultCodes();
   if (!codes[adultName]) {
-    const c1 = await textPrompt({
-      title: `Create Code for ${adultName}`,
-      label: "New code",
-      placeholder: "Create a code",
-      type: "password"
-    });
+    const c1 = await textPrompt({ title: `Create PIN for ${adultName}`, label: "New PIN", placeholder: "4–6 digits", type: "password", numeric: true, maxlength: 6 });
+
     if (!c1) return { ok:false };
 
-    const c2 = await textPrompt({
-      title: "Confirm Code",
-      label: "Re-enter code",
-      placeholder: "Confirm your code",
-      type: "password"
-    });
+    const c2 = await textPrompt({ title: "Confirm PIN", label: "Re-enter PIN", placeholder: "••••", type: "password", numeric: true, maxlength: 6 });
+
     if (!c2) return { ok:false };
 
     if (c1 !== c2) { alert("Codes didn't match."); return { ok:false }; }
@@ -595,12 +786,8 @@ async function verifyAdultCodeFlow() {
     alert(`${adultName}'s code set.`);
     return { ok:true, adultName };
   } else {
-    const attempt = await textPrompt({
-      title: `Enter ${adultName}'s Code`,
-      label: "Code",
-      placeholder: "Enter your code",
-      type: "password"
-    });
+    const attempt = await textPrompt({ title: `Enter ${adultName}'s PIN`, label: "PIN", placeholder: "••••", type: "password", numeric: true, maxlength: 6 });
+
     if (!attempt) return { ok:false };
     if (miniHash(attempt).toString() !== codes[adultName]) { alert("Incorrect code."); return { ok:false }; }
     return { ok:true, adultName };
@@ -1141,6 +1328,80 @@ setInterval(fetchMissions, 30000); // refresh every 30s
     </div>
   </div>
 </div>
+<!-- Low-Stock Checklist -->
+<button id="lowon-fab" aria-label="Report low stock">🧻 Low Supplies</button>
 
+<dialog id="lowon-dialog" class="lowon">
+  <form method="dialog" id="lowon-form">
+    <header>
+      <h3>Which items are low?</h3>
+      <button type="button" id="lowon-close">✕</button>
+    </header>
+
+    <ul id="lowon-list" class="lowon-list">
+      <li><label><input type="checkbox" value="Trash bags"> 🗑️ Trash bags</label></li>
+      <li><label><input type="checkbox" value="Spray cleaner"> 🧴 Spray cleaner</label></li>
+      <li><label><input type="checkbox" value="Clorox wipes"> 🧽 Clorox wipes</label></li>
+      <li><label><input type="checkbox" value="Toilet paper"> 🧻 Toilet paper</label></li>
+      <li><label><input type="checkbox" value="Dish soap"> 🍽️ Dish soap</label></li>
+      <li><label><input type="checkbox" value="Dish tabs"> 🫧 Dish tabs</label></li>
+      <li><label><input type="checkbox" value="Toilet cleaner"> 🚽 Toilet cleaner</label></li>
+      <li><label><input type="checkbox" value="Shower cleaner"> 🚿 Shower cleaner</label></li>
+      <li><label><input type="checkbox" value="Shower cleaner"> Hand soap</label></li>
+    </ul>
+
+    <footer>
+      <button type="submit" id="lowon-submit">Send to Slack</button>
+    </footer>
+  </form>
+</dialog>
+
+<script>
+  (function(){
+    const $fab = document.getElementById('lowon-fab');
+    const $dlg = document.getElementById('lowon-dialog');
+    const $form = document.getElementById('lowon-form');
+    const $close = document.getElementById('lowon-close');
+
+    const SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/T000/XXX/YYY"; // replace
+
+    $fab.addEventListener('click', ()=> $dlg.showModal());
+    $close.addEventListener('click', ()=> $dlg.close());
+
+    $form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const checked = Array.from(document.querySelectorAll('#lowon-list input:checked'))
+        .map(cb => cb.value);
+      if (checked.length === 0) { toast('Nothing selected 🤷'); return; }
+
+      const text = `🧺 *Low household supplies:*\n${checked.map(i => `• ${i}`).join('\n')}`;
+      try {
+        await fetch(SLACK_WEBHOOK_URL, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ text })
+        });
+        toast('Sent to Slack ✅');
+        $form.reset();
+        $dlg.close();
+      } catch (err) {
+        console.error(err);
+        toast('Failed to send 😬', true);
+      }
+    });
+
+    function toast(msg, isError=false){
+      const t = document.createElement('div');
+      t.textContent = msg;
+      Object.assign(t.style,{
+        position:'fixed',left:'50%',bottom:'24px',transform:'translateX(-50%)',
+        background:isError?'#c0392b':'#2ecc71',color:'#fff',
+        padding:'10px 14px',borderRadius:'10px',zIndex:9999
+      });
+      document.body.appendChild(t);
+      setTimeout(()=>t.remove(),1800);
+    }
+  })();
+</script>
 </body>
 </html>
