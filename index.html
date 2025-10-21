@@ -589,6 +589,10 @@
   </style>
 </head>
 <body>
+  <!-- iOS PWA keyboard focus hack -->
+  <input id="focusHack" type="text" inputmode="numeric"
+         style="position:fixed;top:-1000px;left:-1000px;opacity:0;width:0;height:0;border:0;padding:0;" />
+
   <div class="wrap">
     <header>
       <div>
@@ -679,11 +683,42 @@ function textPrompt({
       input.removeAttribute("pattern");
     }
 
-    // Show
-    modal.classList.remove('hidden');
+    // Show + iOS PWA focus hack
+const focusHack = document.getElementById('focusHack');
+if (focusHack) {
+  // establish a focus chain that convinces iOS to show the keyboard
+  focusHack.focus();
+}
 
-    // Aggressive focus sequence
+modal.classList.remove('hidden');
+
+// Aggressive focus sequence
+input.focus({ preventScroll: true });
+input.setSelectionRange(input.value.length, input.value.length);
+
+requestAnimationFrame(() => {
+  if (document.activeElement !== input) {
     input.focus({ preventScroll: true });
+    input.setSelectionRange(input.value.length, input.value.length);
+  }
+});
+
+// extra retries for stubborn standalone mode
+setTimeout(() => {
+  if (document.activeElement !== input) {
+    input.focus({ preventScroll: true });
+    input.click();
+    input.setSelectionRange(input.value.length, input.value.length);
+  }
+}, 60);
+
+setTimeout(() => {
+  if (document.activeElement !== input) {
+    input.focus({ preventScroll: true });
+    input.setSelectionRange(input.value.length, input.value.length);
+  }
+}, 250);
+
     input.setSelectionRange(input.value.length, input.value.length);
 
     requestAnimationFrame(() => {
